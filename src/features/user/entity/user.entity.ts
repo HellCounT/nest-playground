@@ -19,7 +19,10 @@ export class User {
   email: string;
 
   @Column('varchar')
-  hash: string;
+  passwordHash: string;
+
+  @Column('integer')
+  age: number;
 
   @Column({ type: 'varchar', length: 1000 })
   description: string;
