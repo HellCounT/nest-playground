@@ -3,7 +3,6 @@ import { User } from '../entity/user.entity.js';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IBaseRepository } from '../../../base/base-repository.interface.js';
-import { UserRegistrationInputDto } from '../../../auth/api/dto/registration-input.dto.js';
 
 type UpdateInfo = {
   email?: string;
@@ -12,11 +11,7 @@ type UpdateInfo = {
 };
 
 @Injectable()
-export class UserRepository implements IBaseRepository<
-  User,
-  UserRegistrationInputDto,
-  UpdateInfo
-> {
+export class UserRepository implements IBaseRepository<User, UpdateInfo> {
   constructor(@InjectRepository(User) protected usersRepo: Repository<User>) {}
 
   public async getById(id: string): Promise<User | null> {
@@ -28,7 +23,25 @@ export class UserRepository implements IBaseRepository<
     }
   }
 
-  public async create(data: UserRegistrationInputDto): Promise<User | null> {
+  public async findByLogin(login: string): Promise<User | null> {
+    try {
+      return await this.usersRepo.findOneBy({ login });
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  public async findByEmail(email: string): Promise<User | null> {
+    try {
+      return await this.usersRepo.findOneBy({ email });
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  }
+
+  public async create(data: User): Promise<User | null> {
     try {
       return this.usersRepo.create(data);
     } catch (e) {
