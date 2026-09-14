@@ -36,6 +36,23 @@ export class AppConfigService {
   })
   includeTestingModule: boolean;
 
+  //OPTIONS: OBSERVE MODULE
+  @IsBoolean({
+    message:
+      'Set Env variable INCLUDE_TESTING_MODULE to enable/disable ObserveModule, example: true, available values: true, false, 0, 1',
+  })
+  includeObserveModule: boolean | null;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR OBSERVE APP KEY SHOULD BE PROVIDED',
+  })
+  observeAppKey: string;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR OBSERVE SECRET SHOULD BE PROVIDED',
+  })
+  observeAppSecret: string;
+
   // APP CONFIGURATION: PORT
   @IsNumber(
     {},
@@ -95,6 +112,15 @@ export class AppConfigService {
     this.includeTestingModule = configValidationUtility.convertToBoolean(
       this.configService.get('INCLUDE_TESTING_MODULE'),
     ) as boolean;
+
+    this.includeObserveModule = configValidationUtility.convertToBoolean(
+      this.configService.get('INCLUDE_OBSERVE_MODULE'),
+    );
+
+    this.observeAppKey = this.configService.get<string>('OBSERVE_APP_KEY')!;
+
+    this.observeAppSecret =
+      this.configService.get<string>('OBSERVE_APP_SECRET')!;
 
     this.port = Number(this.configService.get('PORT'));
 

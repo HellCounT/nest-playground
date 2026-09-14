@@ -1,7 +1,7 @@
 
 ### API
 
-[ ] User registration
+[x] User registration
 [ ] Get user profiles
 [ ] Update user profile
 [ ] Delete user profile
