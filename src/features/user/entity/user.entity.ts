@@ -3,9 +3,11 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  OneToMany,
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Session } from '../../session/entity/session.entity.js';
 
 @Entity()
 export class User {
@@ -28,11 +30,14 @@ export class User {
   description: string;
 
   @CreateDateColumn({ type: 'timestamp' })
-  createdAt?: Date;
+  createdAt: Date;
 
-  @UpdateDateColumn({ type: 'timestamp' })
-  updatedAt?: Date;
+  @UpdateDateColumn({ type: 'timestamp', nullable: true })
+  updatedAt: Date;
 
-  @DeleteDateColumn({ type: 'timestamp' })
-  deletedAt?: Date;
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedAt: Date;
+
+  @OneToMany(() => Session, (s) => s.user)
+  sessions: Session[];
 }

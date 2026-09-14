@@ -1,11 +1,12 @@
 import { UserRegistrationInputDto } from '../../api/dto/registration-input.dto.js';
 import { CommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../../features/user/infra/user.repository.js';
+import { UserRepository } from '../../../features/user/repository/user.repository.js';
 import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
 import { User } from '../../../features/user/entity/user.entity.js';
 import { BadRequestException } from '@nestjs/common';
 import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
 import { v4 as uuidv4 } from 'uuid';
+import { UserCreateType } from '../../types/user-create.type.js';
 
 export class RegisterUserCommand {
   constructor(public registrationInputDto: UserRegistrationInputDto) {}
@@ -36,7 +37,7 @@ export class RegisterUserHandler {
     }
     const passwordHash = await this.hashPasswordUtil.generateHash(password);
     const id = uuidv4();
-    const newUser: User = {
+    const newUser: UserCreateType = {
       id,
       login,
       email,
