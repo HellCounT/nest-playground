@@ -13,8 +13,8 @@ import { GetAllUsersQueryParamsDto } from './dto/get-all-users-query-params.dto.
 import { Paginated } from '../../../common/utils/pagination.util.js';
 import { GetAllUsersQuery } from './queries/get-all-users.query.js';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard.js';
-import type { RefreshTokenRequest } from '../../../common/types/refresh-token-request.interface.js';
 import { MeQuery } from './queries/my.query.js';
+import type { AccessTokenRequest } from '../../../common/types/access-token-request.interface.js';
 
 @Controller('users')
 export class UsersController {
@@ -39,8 +39,8 @@ export class UsersController {
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
   @Get('me')
-  async me(@Req() request: RefreshTokenRequest): Promise<UserOutputDto> {
-    const userId = request.sessionId;
+  async me(@Req() request: AccessTokenRequest): Promise<UserOutputDto> {
+    const userId = request.userId;
     return await this.queryBus.execute(new MeQuery(userId));
   }
 }

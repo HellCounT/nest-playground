@@ -120,4 +120,37 @@ describe('UsersController (e2e)', () => {
       expect(response.body.items[0].login.toLowerCase()).toContain('andy');
     });
   });
+
+  describe('GET /api/v1/users/me', () => {
+    it('should return 401 without authentication', async () => {
+      await request(app.getHttpServer()).get('/api/v1/users/me').expect(401);
+    });
+
+    it('should return current user', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .expect(200);
+
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        login: testUsers[0].login,
+        email: testUsers[0].email,
+        age: testUsers[0].age,
+        description: testUsers[0].description,
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
+    });
+
+    it('should return 401 with fake access token', async () => {
+      const fakeToken =
+        accessToken.slice(0, -1) + (accessToken.endsWith('a') ? 'b' : 'a');
+
+      await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('Authorization', `Bearer ${fakeToken}`)
+        .expect(401);
+    });
+  });
 });
