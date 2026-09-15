@@ -15,6 +15,8 @@ import { GetAllUsersQuery } from './queries/get-all-users.query.js';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard.js';
 import { MeQuery } from './queries/my.query.js';
 import type { AccessTokenRequest } from '../../../common/types/access-token-request.interface.js';
+import { SwaggerGetAllUsers } from './swagger/swagger-get-all-users.decorator.js';
+import { SwaggerMe } from './swagger/swagger-me.decorator.js';
 
 @Controller('users')
 export class UsersController {
@@ -22,6 +24,7 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
+  @SwaggerGetAllUsers()
   @Get()
   async getAllUsers(
     @Query() queryParams: GetAllUsersQueryParamsDto,
@@ -38,6 +41,7 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
+  @SwaggerMe()
   @Get('me')
   async me(@Req() request: AccessTokenRequest): Promise<UserOutputDto> {
     const userId = request.userId;

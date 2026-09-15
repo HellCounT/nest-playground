@@ -21,6 +21,12 @@ import { RefreshTokenCommand } from '../domain/use-cases/refresh-token.command.j
 import { AccessTokenGuard } from '../../common/guards/access-token.guard.js';
 import { RefreshTokenGuard } from '../../common/guards/refresh-token.guard.js';
 import type { RefreshTokenRequest } from '../../common/types/refresh-token-request.interface.js';
+import { AccessTokenOutputDto } from './dto/access-token-output.dto.js';
+import { UserOutputDto } from '../../features/user/api/dto/user-output.dto.js';
+import { SwaggerRegisterUser } from './swagger/swagger-register-user.decorator.js';
+import { SwaggerLogin } from './swagger/swagger-login.decorator.js';
+import { SwaggerLogout } from './swagger/swagger-logout.decorator.js';
+import { SwaggerRefreshToken } from './swagger/swagger-refresh-token.decorator.js';
 
 @Controller('auth')
 export class AuthController {
@@ -30,22 +36,24 @@ export class AuthController {
   ) {}
 
   @HttpCode(HttpStatus.CREATED)
+  @SwaggerRegisterUser()
   @Post('user-registration')
   async handleUserRegistration(
     @Body() userRegistrationInputDto: UserRegistrationInputDto,
-  ) {
+  ): Promise<UserOutputDto> {
     return await this.commandBus.execute(
       new RegisterUserCommand(userRegistrationInputDto),
     );
   }
 
   @HttpCode(HttpStatus.OK)
+  @SwaggerLogin()
   @Post('login')
   async handleLogin(
     @Body() loginInputDto: LoginInputDto,
     @Res({ passthrough: true }) response: Response,
     @Req() request: Request,
-  ) {
+  ): Promise<AccessTokenOutputDto> {
     const ip = this.ipUtil.getClientIp(request);
     const deviceName = request.get('user-agent') ?? 'Undefined device';
 
@@ -63,6 +71,7 @@ export class AuthController {
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @SwaggerLogout()
   @Post('logout')
   async handleLogout(@Req() request: RefreshTokenRequest) {
     const sessionId = request.sessionId;
@@ -71,11 +80,12 @@ export class AuthController {
 
   @UseGuards(RefreshTokenGuard)
   @HttpCode(HttpStatus.OK)
+  @SwaggerRefreshToken()
   @Post('refresh-token')
   async handleRefreshToken(
     @Req() request: RefreshTokenRequest,
     @Res({ passthrough: true }) response: Response,
-  ) {
+  ): Promise<AccessTokenOutputDto> {
     const sessionId = request.sessionId;
     const refreshTokenCreationDate = request.refreshTokenCreationDate;
 

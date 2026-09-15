@@ -7,8 +7,10 @@ import {
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { validationConstants } from '../../../settings/validation.constraints.js';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginInputDto {
+  @ApiProperty({ example: 'andy258!' })
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) =>
@@ -25,6 +27,7 @@ export class LoginInputDto {
   })
   login: string;
 
+  @ApiProperty({ example: 'TeSt12345!*' })
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) =>
