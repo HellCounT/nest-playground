@@ -7,6 +7,7 @@ import { JwtTokenService } from '../../common/jwt-token.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetAllUsersHandler } from './api/queries/get-all-users.query.js';
 import { PaginationUtil } from '../../common/utils/pagination.util.js';
+import { MeQueryHandler } from './api/queries/my.query.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), CqrsModule],
@@ -15,6 +16,7 @@ import { PaginationUtil } from '../../common/utils/pagination.util.js';
     UserRepository,
     JwtTokenService,
     GetAllUsersHandler,
+    MeQueryHandler,
     PaginationUtil,
   ],
   exports: [UserRepository],
