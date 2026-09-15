@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import * as jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { AppConfigService } from '../config/app-config.service.js';
 import { JwtPayload, SignOptions } from 'jsonwebtoken';
-import { TokenTypes, TokenPayloadMap } from '../auth/types/token.types.js';
+import { TokenTypes, TokenPayloadMap } from './types/token.types.js';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class JwtTokenService {
@@ -20,7 +21,10 @@ export class JwtTokenService {
         tokenType === TokenTypes.REFRESH
           ? this.configService.lifetimeRefreshToken
           : this.configService.lifetimeAccessToken;
-      return jwt.sign(payload, secret, { expiresIn } as SignOptions);
+      return jwt.sign(payload, secret, {
+        expiresIn,
+        jwtid: uuidv4(),
+      } as SignOptions);
     } catch (e) {
       console.error('Error occurred on token creation', e);
       return null;

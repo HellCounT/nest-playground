@@ -38,6 +38,8 @@ async function bootstrap() {
   });
 
   await app.listen(appConfig.port);
+
+  console.log('App started at port ', appConfig.port);
 }
 
 await bootstrap();

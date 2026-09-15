@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Injectable,
   InternalServerErrorException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
 import { LoginInputDto } from '../../api/dto/login-input.dto.js';
@@ -12,7 +13,7 @@ import {
   RefreshTokenPayload,
   TokenPair,
   TokenTypes,
-} from '../../types/token.types.js';
+} from '../../../common/types/token.types.js';
 import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtTokenService } from '../../../common/jwt-token.service.js';
@@ -45,7 +46,7 @@ export class LoginUserHandler {
     const existingUser = await this.userRepository.findByLogin(login);
 
     if (!existingUser) {
-      throw new BadRequestException(
+      throw new UnauthorizedException(
         ErrorObjectFactory.createError('User does not exist', 'login'),
       );
     }
