@@ -10,8 +10,10 @@ import {
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
 import { validationConstants } from '../../../settings/validation.constraints.js';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class UserRegistrationInputDto {
+  @ApiProperty({ example: 'andy258!' })
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) =>
@@ -28,6 +30,7 @@ export class UserRegistrationInputDto {
   })
   login: string;
 
+  @ApiProperty({ example: 'apitest@apitest.com' })
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) =>
@@ -36,6 +39,7 @@ export class UserRegistrationInputDto {
   @IsEmail()
   email: string;
 
+  @ApiProperty({ example: 'TeSt12345!*' })
   @IsString()
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) =>
@@ -52,11 +56,13 @@ export class UserRegistrationInputDto {
   })
   password: string;
 
+  @ApiProperty({ example: 35 })
   @IsInt()
   @IsNotEmpty()
   @IsPositive({ message: `The age number should be positive` })
   age: number;
 
+  @ApiProperty({ example: 'Backend developer' })
   @IsString()
   @IsNotEmpty()
   @MinLength(validationConstants.DESCRIPTION_MIN_LENGTH, {
