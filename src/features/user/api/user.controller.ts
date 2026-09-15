@@ -4,6 +4,7 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { QueryBus } from '@nestjs/cqrs';
@@ -12,6 +13,8 @@ import { GetAllUsersQueryParamsDto } from './dto/get-all-users-query-params.dto.
 import { Paginated } from '../../../common/utils/pagination.util.js';
 import { GetAllUsersQuery } from './queries/get-all-users.query.js';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard.js';
+import type { RefreshTokenRequest } from '../../../common/types/refresh-token-request.interface.js';
+import { MeQuery } from './queries/my.query.js';
 
 @Controller('users')
 export class UsersController {
@@ -31,5 +34,13 @@ export class UsersController {
         queryParams.searchLogin,
       ),
     );
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('me')
+  async me(@Req() request: RefreshTokenRequest): Promise<UserOutputDto> {
+    const userId = request.sessionId;
+    return await this.queryBus.execute(new MeQuery(userId));
   }
 }
