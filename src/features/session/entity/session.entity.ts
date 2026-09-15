@@ -7,6 +7,7 @@ import {
   ManyToOne,
   PrimaryColumn,
 } from 'typeorm';
+import type { Relation } from 'typeorm';
 import { User } from '../../user/entity/user.entity.js';
 
 @Entity()
@@ -16,7 +17,7 @@ export class Session {
 
   @ManyToOne(() => User, (u) => u.sessions)
   @JoinColumn()
-  user: User;
+  user: Relation<User>;
 
   @Column('varchar')
   userId: string;

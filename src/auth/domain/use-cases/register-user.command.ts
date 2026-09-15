@@ -7,6 +7,7 @@ import { BadRequestException } from '@nestjs/common';
 import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
 import { v4 as uuidv4 } from 'uuid';
 import { UserCreateType } from '../../types/user-create.type.js';
+import { UserOutputDto } from '../../../features/user/api/dto/user-output.dto.js';
 
 export class RegisterUserCommand {
   constructor(public registrationInputDto: UserRegistrationInputDto) {}
@@ -18,7 +19,7 @@ export class RegisterUserHandler {
     protected userRepository: UserRepository,
     protected hashPasswordUtil: HashPasswordUtil,
   ) {}
-  async execute(command: RegisterUserCommand): Promise<User | null> {
+  async execute(command: RegisterUserCommand): Promise<UserOutputDto | null> {
     const { login, email, password, age, description } =
       command.registrationInputDto;
     const checkForExistingUserLogin =
@@ -45,6 +46,11 @@ export class RegisterUserHandler {
       age,
       description,
     };
-    return await this.userRepository.create(newUser);
+    const createdUser = await this.userRepository.create(newUser);
+    if (createdUser) {
+      return UserOutputDto.mapToView(createdUser);
+    } else {
+      return null;
+    }
   }
 }

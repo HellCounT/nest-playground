@@ -18,7 +18,8 @@ export class SessionRepository implements IBaseRepository<
   ) {}
   async create(data: SessionCreateType): Promise<Session | null> {
     try {
-      return this.sessionsRepository.create(data);
+      const session = this.sessionsRepository.create(data);
+      return await this.sessionsRepository.save(session);
     } catch (e) {
       console.log(e);
       return null;
@@ -70,6 +71,16 @@ export class SessionRepository implements IBaseRepository<
   async deleteOneById(id: string): Promise<boolean> {
     try {
       const deleteResult = await this.sessionsRepository.softDelete(id);
+      return !!deleteResult.affected;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  }
+
+  public async testingDeleteAllRecords(): Promise<boolean> {
+    try {
+      const deleteResult = await this.sessionsRepository.deleteAll();
       return !!deleteResult.affected;
     } catch (e) {
       console.log(e);

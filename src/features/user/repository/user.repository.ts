@@ -54,7 +54,8 @@ export class UserRepository implements IBaseRepository<
 
   public async create(data: UserCreateType): Promise<User | null> {
     try {
-      return this.usersRepository.create(data);
+      const user = this.usersRepository.create(data);
+      return await this.usersRepository.save(user);
     } catch (e) {
       console.log(e);
       return null;
@@ -77,6 +78,16 @@ export class UserRepository implements IBaseRepository<
   public async deleteOneById(id: string): Promise<boolean> {
     try {
       const deleteResult = await this.usersRepository.softDelete(id);
+      return !!deleteResult.affected;
+    } catch (e) {
+      console.log(e);
+      return false;
+    }
+  }
+
+  public async testingDeleteAllRecords(): Promise<boolean> {
+    try {
+      const deleteResult = await this.usersRepository.deleteAll();
       return !!deleteResult.affected;
     } catch (e) {
       console.log(e);

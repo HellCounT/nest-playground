@@ -1,6 +1,8 @@
 import * as bcrypt from 'bcrypt';
 import { AppConfigService } from '../../config/app-config.service.js';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class HashPasswordUtil {
   constructor(protected configService: AppConfigService) {}
 
