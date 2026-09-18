@@ -3,7 +3,7 @@ import {
   INestApplication,
   ValidationPipe,
 } from '@nestjs/common';
-import { AllExceptionsFilter } from './all-exception.filter.js';
+import { AllExceptionsFilter } from '../common/exceptions/all-exception.filter.js';
 import cookieParser from 'cookie-parser';
 
 type ErrorResponseType = {

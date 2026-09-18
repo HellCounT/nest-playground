@@ -5,6 +5,10 @@ import { IsNull, Repository } from 'typeorm';
 import { Session } from '../entity/session.entity.js';
 import { SessionCreateType } from '../types/session-create.type.js';
 import { SessionUpdateType } from '../types/session-update.type.js';
+import {
+  RepositoryReadException,
+  RepositoryWriteException,
+} from '../../../common/exceptions/repository-exceptions.js';
 
 @Injectable()
 export class SessionRepository implements IBaseRepository<
@@ -16,13 +20,12 @@ export class SessionRepository implements IBaseRepository<
     @InjectRepository(Session)
     protected sessionsRepository: Repository<Session>,
   ) {}
-  async create(data: SessionCreateType): Promise<Session | null> {
+  async create(data: SessionCreateType): Promise<Session> {
     try {
       const session = this.sessionsRepository.create(data);
       return await this.sessionsRepository.save(session);
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -33,8 +36,7 @@ export class SessionRepository implements IBaseRepository<
         deletedAt: IsNull(),
       });
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryReadException(e);
     }
   }
 
@@ -51,8 +53,7 @@ export class SessionRepository implements IBaseRepository<
         deletedAt: IsNull(),
       });
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryReadException(e);
     }
   }
 
@@ -63,8 +64,7 @@ export class SessionRepository implements IBaseRepository<
       });
       return !!updateResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -73,8 +73,7 @@ export class SessionRepository implements IBaseRepository<
       const deleteResult = await this.sessionsRepository.softDelete(id);
       return !!deleteResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -83,8 +82,7 @@ export class SessionRepository implements IBaseRepository<
       const deleteResult = await this.sessionsRepository.deleteAll();
       return !!deleteResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 }

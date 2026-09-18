@@ -5,6 +5,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { IBaseRepository } from '../../../base/base-repository.interface.js';
 import { UserCreateType } from '../../../auth/types/user-create.type.js';
 import { UserUpdateInfoType } from '../../../auth/types/user-update-info.type.js';
+import {
+  RepositoryReadException,
+  RepositoryWriteException,
+} from '../../../common/exceptions/repository-exceptions.js';
 
 @Injectable()
 export class UserRepository implements IBaseRepository<
@@ -23,8 +27,7 @@ export class UserRepository implements IBaseRepository<
         deletedAt: IsNull(),
       });
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryReadException(e);
     }
   }
 
@@ -35,8 +38,7 @@ export class UserRepository implements IBaseRepository<
         deletedAt: IsNull(),
       });
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryReadException(e);
     }
   }
 
@@ -47,18 +49,16 @@ export class UserRepository implements IBaseRepository<
         deletedAt: IsNull(),
       });
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryReadException(e);
     }
   }
 
-  public async create(data: UserCreateType): Promise<User | null> {
+  public async create(data: UserCreateType): Promise<User> {
     try {
       const user = this.usersRepository.create(data);
       return await this.usersRepository.save(user);
     } catch (e) {
-      console.log(e);
-      return null;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -70,8 +70,7 @@ export class UserRepository implements IBaseRepository<
       const updateResult = await this.usersRepository.update(id, { ...data });
       return !!updateResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -80,8 +79,7 @@ export class UserRepository implements IBaseRepository<
       const deleteResult = await this.usersRepository.softDelete(id);
       return !!deleteResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 
@@ -90,8 +88,7 @@ export class UserRepository implements IBaseRepository<
       const deleteResult = await this.usersRepository.deleteAll();
       return !!deleteResult.affected;
     } catch (e) {
-      console.log(e);
-      return false;
+      throw new RepositoryWriteException(e);
     }
   }
 }

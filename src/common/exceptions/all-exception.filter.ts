@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
+import { RepositoryException } from './repository-exceptions.js';
 
 type ErrorMessage = {
   statusCode: number;
@@ -33,6 +34,22 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const errorResponse: ErrorResponse = {
       errorsMessages: [],
     };
+
+    if (exception instanceof RepositoryException) {
+      console.error(exception);
+      console.error(exception.cause);
+
+      response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        errorMessages: [
+          {
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+            field: request.url,
+            message: 'Internal server error',
+          },
+        ],
+      });
+      return;
+    }
 
     if (exception instanceof HttpException) {
       const exceptionResponse = exception.getResponse();
