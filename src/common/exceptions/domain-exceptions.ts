@@ -18,6 +18,7 @@ export const domainExceptionStatusMap: Record<string, HttpStatus> = {
   USER_ALREADY_EXISTS: HttpStatus.BAD_REQUEST,
   USER_CREATION_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
   SESSION_NOT_FOUND: HttpStatus.UNAUTHORIZED,
+  SESSION_CREATION_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
   SESSION_UPDATE_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
   PASSWORD_HASH_GENERATION_FAILED: HttpStatus.INTERNAL_SERVER_ERROR,
   JWT_TOKEN_CREATION_FAILED: HttpStatus.UNAUTHORIZED,
@@ -33,7 +34,7 @@ export class UserNotFoundException extends DomainException {
 
 export class UserCreationFailedException extends DomainException {
   constructor() {
-    super('User creation failed', 'USER_CREATION_FAILED', 'userId');
+    super('User creation failed', 'USER_CREATION_FAILED');
   }
 }
 
@@ -56,6 +57,12 @@ export class UserAlreadyExistsException extends DomainException {
 export class SessionNotFoundException extends DomainException {
   constructor() {
     super('Session does not exist', 'SESSION_NOT_FOUND');
+  }
+}
+
+export class SessionCreationFailedException extends DomainException {
+  constructor() {
+    super('Session creation failed', 'SESSION_CREATION_FAILED');
   }
 }
 

@@ -11,6 +11,7 @@ import { SessionCreateType } from '../../../features/session/types/session-creat
 import { DUMMY_PASSWORD_HASH } from '../../constraints/auth.constants.js';
 import {
   InvalidPasswordException,
+  SessionCreationFailedException,
   SessionUpdateFailedException,
   UserNotFoundException,
 } from '../../../common/exceptions/domain-exceptions.js';
@@ -84,7 +85,8 @@ export class LoginUserHandler {
         refreshTokenCreationDate: createdAt,
         lastVisit: new Date(),
       };
-      await this.sessionRepository.create(newSession);
+      const createdSession = this.sessionRepository.create(newSession);
+      if (!createdSession) throw new SessionCreationFailedException();
     }
 
     return { accessToken, refreshToken };
