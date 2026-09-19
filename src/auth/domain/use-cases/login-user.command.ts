@@ -85,7 +85,7 @@ export class LoginUserHandler {
         refreshTokenCreationDate: createdAt,
         lastVisit: new Date(),
       };
-      const createdSession = this.sessionRepository.create(newSession);
+      const createdSession = await this.sessionRepository.create(newSession);
       if (!createdSession) throw new SessionCreationFailedException();
     }
 
