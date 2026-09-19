@@ -1,6 +1,7 @@
 import * as bcrypt from 'bcrypt';
 import { AppConfigService } from '../../config/app-config.service.js';
 import { Injectable } from '@nestjs/common';
+import { PasswordHashGenerationFailedException } from '../exceptions/domain-exceptions.js';
 
 @Injectable()
 export class HashPasswordUtil {
@@ -10,8 +11,8 @@ export class HashPasswordUtil {
     try {
       const salt = await bcrypt.genSalt(this.configService.saltRounds);
       return bcrypt.hash(password, salt);
-    } catch (error) {
-      throw error;
+    } catch (e) {
+      throw new PasswordHashGenerationFailedException(e);
     }
   }
 

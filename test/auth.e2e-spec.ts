@@ -12,7 +12,6 @@ let sessionRepository: SessionRepository;
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
-  let accessToken: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -93,6 +92,40 @@ describe('AuthController (e2e)', () => {
       expect(cookies).toBeDefined();
       expect(cookies[0]).toContain('refreshToken=');
       expect(cookies[0]).toContain('HttpOnly');
+    });
+
+    it('should reuse existing session on repeated login and allow refresh', async () => {
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/user-registration')
+        .send(testUsers[0])
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          login: testUsers[0].login,
+          password: testUsers[0].password,
+        })
+        .expect(200);
+
+      const secondLoginResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({
+          login: testUsers[0].login,
+          password: testUsers[0].password,
+        })
+        .expect(200);
+
+      const secondRefreshCookie = secondLoginResponse.headers['set-cookie'][0];
+
+      expect(secondLoginResponse.body.accessToken).toEqual(expect.any(String));
+
+      expect(secondRefreshCookie).toContain('refreshToken=');
+
+      await request(app.getHttpServer())
+        .post('/api/v1/auth/refresh-token')
+        .set('Cookie', secondRefreshCookie)
+        .expect(200);
     });
   });
 

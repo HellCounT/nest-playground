@@ -16,10 +16,10 @@ export class Session {
   id: string;
 
   @ManyToOne(() => User, (u) => u.sessions)
-  @JoinColumn()
+  @JoinColumn({ name: 'userId' })
   user: Relation<User>;
 
-  @Column('varchar')
+  @Column('uuid')
   userId: string;
 
   @Column('varchar')

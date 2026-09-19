@@ -5,7 +5,6 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtTokenService } from '../jwt-token.service.js';
-import { ErrorObjectFactory } from '../utils/error-object.factory.js';
 import { AccessTokenPayload, TokenTypes } from '../types/token.types.js';
 
 @Injectable()
@@ -16,23 +15,19 @@ export class AccessTokenGuard implements CanActivate {
     const authHeader = request.headers.authorization;
 
     if (!authHeader) {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError(
-          'Access Token not found in Authorization header',
-          'Auth header',
-        ),
-      );
+      throw new UnauthorizedException('No token provided');
     }
 
-    const accessToken = authHeader.split(' ')[1];
+    const [schema, accessToken] = authHeader.split(' ');
+    if (schema !== 'Bearer' || !accessToken) {
+      throw new UnauthorizedException('Invalid Access Token');
+    }
 
     const verifiedAccessToken: AccessTokenPayload | null =
       await this.jwtTokenService.verifyToken(accessToken, TokenTypes.ACCESS);
 
     if (!verifiedAccessToken) {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError('Invalid Access Token', 'Auth header'),
-      );
+      throw new UnauthorizedException('Invalid Access Token');
     } else {
       const { userId, sessionId } = verifiedAccessToken;
       request.userId = userId;

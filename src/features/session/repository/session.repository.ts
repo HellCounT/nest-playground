@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { IBaseRepository } from '../../../base/base-repository.interface.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, Repository, UpdateResult } from 'typeorm';
 import { Session } from '../entity/session.entity.js';
 import { SessionCreateType } from '../types/session-create.type.js';
 import { SessionUpdateType } from '../types/session-update.type.js';
@@ -58,8 +58,9 @@ export class SessionRepository implements IBaseRepository<
   }
 
   async updateOneById(id: string, data: SessionUpdateType): Promise<boolean> {
+    let updateResult: UpdateResult;
     try {
-      const updateResult = await this.sessionsRepository.update(id, {
+      updateResult = await this.sessionsRepository.update(id, {
         refreshTokenCreationDate: data.refreshTokenCreationDate,
       });
       return !!updateResult.affected;

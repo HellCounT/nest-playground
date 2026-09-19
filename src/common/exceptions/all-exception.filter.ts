@@ -7,6 +7,11 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { RepositoryException } from './repository-exceptions.js';
+import {
+  DomainException,
+  domainExceptionStatusMap,
+  UserAlreadyExistsException,
+} from './domain-exceptions.js';
 
 type ErrorMessage = {
   statusCode: number;
@@ -26,11 +31,6 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
 
-    const status =
-      exception instanceof HttpException
-        ? exception.getStatus()
-        : HttpStatus.INTERNAL_SERVER_ERROR;
-
     const errorResponse: ErrorResponse = {
       errorsMessages: [],
     };
@@ -39,8 +39,8 @@ export class AllExceptionsFilter implements ExceptionFilter {
       console.error(exception);
       console.error(exception.cause);
 
-      response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-        errorMessages: [
+      return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        errorsMessages: [
           {
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
             field: request.url,
@@ -48,10 +48,37 @@ export class AllExceptionsFilter implements ExceptionFilter {
           },
         ],
       });
-      return;
+    }
+
+    if (exception instanceof DomainException) {
+      const status =
+        domainExceptionStatusMap[exception.code] ?? HttpStatus.BAD_REQUEST;
+
+      if (exception instanceof UserAlreadyExistsException) {
+        return response.status(status).json({
+          errorsMessages: [
+            {
+              statusCode: status,
+              field: request.url,
+              message: 'Unable to create user with provided credentials',
+            },
+          ],
+        });
+      }
+
+      return response.status(status).json({
+        errorsMessages: [
+          {
+            statusCode: status,
+            field: exception.field ?? request.url,
+            message: exception.message,
+          },
+        ],
+      });
     }
 
     if (exception instanceof HttpException) {
+      const status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
       if (typeof exceptionResponse === 'string') {
@@ -81,16 +108,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
           });
         }
       }
-    } else {
-      errorResponse.errorsMessages.push({
-        statusCode: status,
-        field: request.url,
-        message: 'Internal server error',
-      });
 
-      console.error(exception);
+      return response.status(status).json(errorResponse);
     }
 
-    response.status(status).json(errorResponse);
+    errorResponse.errorsMessages.push({
+      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+      field: request.url,
+      message: 'Internal server error',
+    });
+    console.log(exception);
+    return response
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
   }
 }

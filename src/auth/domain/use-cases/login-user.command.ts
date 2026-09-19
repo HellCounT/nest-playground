@@ -1,30 +1,25 @@
-import {
-  BadRequestException,
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CommandHandler } from '@nestjs/cqrs';
 import { LoginInputDto } from '../../api/dto/login-input.dto.js';
 import { UserRepository } from '../../../features/user/repository/user.repository.js';
 import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
-import {
-  AccessTokenPayload,
-  RefreshTokenPayload,
-  TokenPair,
-  TokenTypes,
-} from '../../../common/types/token.types.js';
-import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
+import { TokenPair, TokenTypes } from '../../../common/types/token.types.js';
 import { v4 as uuidv4 } from 'uuid';
 import { JwtTokenService } from '../../../common/jwt-token.service.js';
 import { SessionRepository } from '../../../features/session/repository/session.repository.js';
 import { SessionCreateType } from '../../../features/session/types/session-create.type.js';
+import { DUMMY_PASSWORD_HASH } from '../../constraints/auth.constants.js';
+import {
+  InvalidPasswordException,
+  SessionUpdateFailedException,
+  UserNotFoundException,
+} from '../../../common/exceptions/domain-exceptions.js';
 
 export class LoginUserCommand {
   constructor(
-    public loginInputDto: LoginInputDto,
-    public ip: string,
-    public deviceName: string,
+    public readonly loginInputDto: LoginInputDto,
+    public readonly ip: string,
+    public readonly deviceName: string,
   ) {}
 }
 
@@ -32,10 +27,10 @@ export class LoginUserCommand {
 @Injectable()
 export class LoginUserHandler {
   constructor(
-    protected userRepository: UserRepository,
-    protected hashPasswordUtil: HashPasswordUtil,
-    protected jwtTokenService: JwtTokenService,
-    protected sessionRepository: SessionRepository,
+    private readonly userRepository: UserRepository,
+    private readonly hashPasswordUtil: HashPasswordUtil,
+    private readonly jwtTokenService: JwtTokenService,
+    private readonly sessionRepository: SessionRepository,
   ) {}
 
   async execute(command: LoginUserCommand): Promise<TokenPair> {
@@ -45,50 +40,18 @@ export class LoginUserHandler {
 
     const existingUser = await this.userRepository.findByLogin(login);
 
-    if (!existingUser) {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError('User does not exist', 'login'),
-      );
-    }
+    const passwordHash = existingUser?.passwordHash ?? DUMMY_PASSWORD_HASH;
 
     const isPasswordValid = await this.hashPasswordUtil.verifyPassword(
       password,
-      existingUser.passwordHash,
+      passwordHash,
     );
 
-    if (!isPasswordValid) {
-      throw new BadRequestException('Invalid password', 'password');
-    }
+    if (!existingUser) throw new UserNotFoundException();
+    if (!isPasswordValid) throw new InvalidPasswordException();
 
-    const sessionId = uuidv4();
     const createdAt = new Date().toISOString();
     const userId = existingUser.id;
-
-    const refreshToken: string | null = await this.jwtTokenService.createToken(
-      { userId, sessionId, createdAt } as RefreshTokenPayload,
-      TokenTypes.REFRESH,
-    );
-
-    if (!refreshToken) {
-      throw new InternalServerErrorException(
-        ErrorObjectFactory.createError(
-          'Some error occurred on refresh token creation',
-        ),
-      );
-    }
-
-    const accessToken: string | null = await this.jwtTokenService.createToken(
-      { userId, sessionId } as AccessTokenPayload,
-      TokenTypes.ACCESS,
-    );
-
-    if (!accessToken) {
-      throw new InternalServerErrorException(
-        ErrorObjectFactory.createError(
-          'Some error occurred on access token creation',
-        ),
-      );
-    }
 
     const session = await this.sessionRepository.getBySessionDetails(
       userId,
@@ -96,10 +59,22 @@ export class LoginUserHandler {
       deviceName,
     );
 
+    const sessionId = session?.id ?? uuidv4();
+
+    const refreshToken = await this.jwtTokenService.createToken(
+      { userId, sessionId, createdAt },
+      TokenTypes.REFRESH,
+    );
+    const accessToken = await this.jwtTokenService.createToken(
+      { userId, sessionId },
+      TokenTypes.ACCESS,
+    );
+
     if (session) {
-      await this.sessionRepository.updateOneById(session.id, {
+      const isUpdated = this.sessionRepository.updateOneById(session.id, {
         refreshTokenCreationDate: createdAt,
       });
+      if (!isUpdated) throw new SessionUpdateFailedException();
     } else {
       const newSession: SessionCreateType = {
         id: sessionId,
@@ -112,6 +87,6 @@ export class LoginUserHandler {
       await this.sessionRepository.create(newSession);
     }
 
-    return { accessToken, refreshToken } as TokenPair;
+    return { accessToken, refreshToken };
   }
 }

@@ -1,13 +1,12 @@
 import { CommandHandler } from '@nestjs/cqrs';
-import {
-  Injectable,
-  InternalServerErrorException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtTokenService } from '../../../common/jwt-token.service.js';
 import { SessionRepository } from '../../../features/session/repository/session.repository.js';
-import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
 import { TokenPair, TokenTypes } from '../../../common/types/token.types.js';
+import {
+  SessionNotFoundException,
+  SessionUpdateFailedException,
+} from '../../../common/exceptions/domain-exceptions.js';
 
 export class RefreshTokenCommand {
   constructor(
@@ -30,9 +29,7 @@ export class RefreshTokenHandler {
       !session ||
       session.refreshTokenCreationDate !== command.refreshTokenCreationDate
     ) {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError('Unauthorized session ID'),
-      );
+      throw new SessionNotFoundException();
     }
 
     const newRefreshTokenCreationDate = new Date().toISOString();
@@ -46,30 +43,19 @@ export class RefreshTokenHandler {
       TokenTypes.REFRESH,
     );
 
-    if (!refreshToken) {
-      throw new InternalServerErrorException(
-        ErrorObjectFactory.createError(
-          'Some error occurred on refresh token creation',
-        ),
-      );
-    }
-
     const accessToken = await this.jwtTokenService.createToken(
       { userId: session.userId, sessionId: command.sessionId },
       TokenTypes.ACCESS,
     );
 
-    if (!accessToken) {
-      throw new InternalServerErrorException(
-        ErrorObjectFactory.createError(
-          'Some error occurred on access token creation',
-        ),
-      );
-    }
+    const isUpdated = await this.sessionRepository.updateOneById(
+      command.sessionId,
+      {
+        refreshTokenCreationDate: newRefreshTokenCreationDate,
+      },
+    );
 
-    await this.sessionRepository.updateOneById(command.sessionId, {
-      refreshTokenCreationDate: newRefreshTokenCreationDate,
-    });
+    if (!isUpdated) throw new SessionUpdateFailedException();
 
     return { accessToken, refreshToken };
   }

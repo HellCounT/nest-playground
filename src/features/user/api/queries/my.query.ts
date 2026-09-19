@@ -1,10 +1,10 @@
 import { QueryHandler } from '@nestjs/cqrs';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entity/user.entity.js';
 import { Repository } from 'typeorm';
 import { UserOutputDto } from '../dto/user-output.dto.js';
-import { ErrorObjectFactory } from '../../../../common/utils/error-object.factory.js';
+import { UserNotFoundException } from '../../../../common/exceptions/domain-exceptions.js';
 
 export class MeQuery {
   constructor(public userId: string) {}
@@ -19,9 +19,7 @@ export class MeQueryHandler {
   async execute(query: MeQuery): Promise<UserOutputDto> {
     const user = await this.usersRepository.findOneBy({ id: query.userId });
     if (!user) {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError('User does not exist', 'userId'),
-      );
+      throw new UserNotFoundException();
     } else {
       return UserOutputDto.mapToView(user);
     }

@@ -1,7 +1,7 @@
 import { CommandHandler } from '@nestjs/cqrs';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SessionRepository } from '../../../features/session/repository/session.repository.js';
-import { ErrorObjectFactory } from '../../../common/utils/error-object.factory.js';
+import { SessionNotFoundException } from '../../../common/exceptions/domain-exceptions.js';
 
 export class LogoutUserCommand {
   constructor(public sessionId: string) {}
@@ -17,12 +17,10 @@ export class LogoutUserHandler {
       command.sessionId,
     );
 
-    if (existingSession) {
-      return await this.sessionRepository.deleteOneById(existingSession.id);
+    if (!existingSession) {
+      throw new SessionNotFoundException();
     } else {
-      throw new UnauthorizedException(
-        ErrorObjectFactory.createError('Session does not exist'),
-      );
+      return await this.sessionRepository.deleteOneById(existingSession.id);
     }
   }
 }
