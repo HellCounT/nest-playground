@@ -102,6 +102,34 @@ export class AppConfigService {
   })
   lifetimeRefreshToken: string;
 
+  // STORAGE CONFIGURATION
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE URL SHOULD BE PROVIDED',
+  })
+  storageUrl: string;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE REGION SHOULD BE PROVIDED',
+  })
+  storageRegion: string;
+
+  @IsNotEmpty({
+    message:
+      'CORRECT ENV VARIABLE FOR STORAGE ACCESS KEY ID SHOULD BE PROVIDED',
+  })
+  storageAccessKeyId: string;
+
+  @IsNotEmpty({
+    message:
+      'CORRECT ENV VARIABLE FOR STORAGE SECRET ACCESS KEY SHOULD BE PROVIDED',
+  })
+  storageSecretAccessKey: string;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE BUCKET NAME SHOULD BE PROVIDED',
+  })
+  storageBucketName: string;
+
   constructor(private readonly configService: ConfigService) {
     this.env = this.configService.get<string>('NODE_ENV')!;
 
@@ -144,6 +172,22 @@ export class AppConfigService {
 
     this.lifetimeRefreshToken = this.configService.get<string>(
       'EXPIRATION_REFRESH_TOKEN',
+    )!;
+
+    this.storageUrl = this.configService.get<string>('STORAGE_URL')!;
+
+    this.storageRegion = this.configService.get<string>('STORAGE_REGION')!;
+
+    this.storageAccessKeyId = this.configService.get<string>(
+      'STORAGE_ACCESS_KEY_ID',
+    )!;
+
+    this.storageSecretAccessKey = this.configService.get<string>(
+      'STORAGE_SECRET_ACCESS_KEY',
+    )!;
+
+    this.storageBucketName = this.configService.get<string>(
+      'STORAGE_BUCKET_NAME',
     )!;
 
     configValidationUtility.validateConfig(this);

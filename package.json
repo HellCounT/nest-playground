@@ -24,6 +24,8 @@
     "pre-commit": "lint-staged"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1142.0",
+    "@aws-sdk/types": "^3.974.6",
     "@nestjs/common": "^12.0.1",
     "@nestjs/config": "^12.0.0",
     "@nestjs/core": "^12.0.1",
@@ -74,7 +76,7 @@
   },
   "lint-staged": {
     "*.{js, jsx,ts,tsx}": [
-      "eslint --quiet --fix"
+      "oxlint --quiet --fix"
     ],
     "*.{json,js,ts,jsx,tsx,html}": [
       "prettier --write --ignore-unknown"

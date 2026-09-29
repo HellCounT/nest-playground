@@ -1,19 +1,18 @@
-
 ### API
 
 [x] User registration
-[ ] Get user profiles
+[x] Get user profiles
 [ ] Update user profile
-[ ] Delete user profile
-[ ] Login
-[ ] Logout
+[x] Delete user profile
+[x] Login
+[x] Logout
 
 ### Stack
 
-[ ] pg + ORM (local)
-[ ] docker-compose (db)
+[x] pg + ORM (local)
+[x] docker-compose (db)
 
-## [ ] L1 Tasks
+## [x] L1 Tasks
 
 1. Registration DTO
 
@@ -32,11 +31,11 @@
 4. Logout (close session)
 5. /profile/me - all fields
 
-## [ ] L2 Tasks
+## [x] L2 Tasks
 
 1. Authorized users should be able to get all users' profiles (/w pagination)
 
-## [ ] L3 Tasks
+## [x] L3 Tasks
 
 1. Swagger documentation
 2. Tests e2e

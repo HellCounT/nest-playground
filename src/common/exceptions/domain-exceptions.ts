@@ -6,6 +6,7 @@ export abstract class DomainException extends Error {
     public readonly code: string,
     public readonly field?: string,
     public readonly cause?: unknown,
+    public readonly publicMessage: string = message,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -50,6 +51,8 @@ export class UserAlreadyExistsException extends DomainException {
       `User with this ${field} already exists`,
       'USER_ALREADY_EXISTS',
       field,
+      undefined,
+      'Unable to create user with provided credentials',
     );
   }
 }
