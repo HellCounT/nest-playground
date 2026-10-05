@@ -1,7 +1,7 @@
 import * as AWS from '@aws-sdk/client-s3';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { IFileService } from '../files.adapter.js';
-import { S3Lib } from './constants/do-spaces-service-lib.constant.js';
+import { S3Lib } from './constants/s3lib.constant.js';
 import { UploadFilePayloadDto } from './dto/upload-file-payload.dto.js';
 import { UploadFileResultDto } from './dto/upload-file-result.dto.js';
 import { RemoveFilePayloadDto } from './dto/remove-file-payload.dto.js';
