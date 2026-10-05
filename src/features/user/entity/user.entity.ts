@@ -1,3 +1,4 @@
+import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
@@ -7,8 +8,8 @@ import {
   PrimaryColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import type { Relation } from 'typeorm';
 import { Session } from '../../session/entity/session.entity.js';
+import { Avatar } from '../../avatar/entity/avatar.entity.js';
 
 @Entity()
 export class User {
@@ -41,4 +42,7 @@ export class User {
 
   @OneToMany(() => Session, (s) => s.user)
   sessions: Relation<Session[]>;
+
+  @OneToMany(() => Avatar, (a) => a.user)
+  avatars: Relation<Avatar[]>;
 }

@@ -4,12 +4,12 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AppConfigService } from './config/app-config.service.js';
-import { TestingModule } from '@nestjs/testing';
 import { ObserveModule } from './settings/observe.js';
 import { AuthModule } from './auth/auth.module.js';
 import { UserModule } from './features/user/user.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';
+import { AvatarModule } from './features/avatar/avatar.module.js';
 
 @Module({
   imports: [
@@ -29,6 +29,7 @@ import { AppConfigModule } from './config/app-config.module.js';
 
     AuthModule,
     UserModule,
+    AvatarModule,
   ],
   controllers: [AppController],
   providers: [AppService],

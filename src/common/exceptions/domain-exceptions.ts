@@ -25,6 +25,9 @@ export const domainExceptionStatusMap: Record<string, HttpStatus> = {
   JWT_TOKEN_CREATION_FAILED: HttpStatus.UNAUTHORIZED,
   JWT_TOKEN_VERIFICATION_FAILED: HttpStatus.UNAUTHORIZED,
   INVALID_TOKEN: HttpStatus.UNAUTHORIZED,
+  AVATARS_MAXIMUM_ACHIEVED: HttpStatus.BAD_REQUEST,
+  AVATAR_NOT_FOUND: HttpStatus.BAD_REQUEST,
+  UNABLE_TO_DELETE_FOREIGN_AVATAR: HttpStatus.FORBIDDEN,
 };
 
 export class UserNotFoundException extends DomainException {
@@ -111,5 +114,23 @@ export class JwtTokenVerificationException extends DomainException {
 export class InvalidTokenException extends DomainException {
   constructor() {
     super('Invalid JWT token', 'INVALID_TOKEN');
+  }
+}
+
+export class AvatarsMaximumAmountAchievedException extends DomainException {
+  constructor() {
+    super('Avatars max achieved', 'AVATARS_MAXIMUM_ACHIEVED');
+  }
+}
+
+export class AvatarNotFoundException extends DomainException {
+  constructor() {
+    super('Avatar is not found', 'AVATAR_NOT_FOUND');
+  }
+}
+
+export class UnableToDeleteForeignAvatarException extends DomainException {
+  constructor() {
+    super('Unable to delete foreign avatar', 'UNABLE_TO_DELETE_FOREIGN_AVATAR');
   }
 }
