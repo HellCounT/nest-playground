@@ -1,4 +1,4 @@
-import { QueryHandler } from '@nestjs/cqrs';
+import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entity/user.entity.js';
@@ -6,13 +6,15 @@ import { Repository } from 'typeorm';
 import { UserOutputDto } from '../dto/user-output.dto.js';
 import { UserNotFoundException } from '../../../../common/exceptions/domain-exceptions.js';
 
-export class MeQuery {
-  constructor(public userId: string) {}
+export class MeQuery extends Query<UserOutputDto> {
+  constructor(public userId: string) {
+    super();
+  }
 }
 
 @QueryHandler(MeQuery)
 @Injectable()
-export class MeQueryHandler {
+export class MeQueryHandler implements IQueryHandler<MeQuery> {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
   ) {}

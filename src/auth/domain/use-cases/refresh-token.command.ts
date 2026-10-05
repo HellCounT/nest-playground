@@ -1,4 +1,4 @@
-import { CommandHandler } from '@nestjs/cqrs';
+import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { JwtTokenService } from '../../../common/jwt-token.service.js';
 import { SessionRepository } from '../../../features/session/repository/session.repository.js';
@@ -8,16 +8,18 @@ import {
   SessionUpdateFailedException,
 } from '../../../common/exceptions/domain-exceptions.js';
 
-export class RefreshTokenCommand {
+export class RefreshTokenCommand extends Command<TokenPair> {
   constructor(
     public sessionId: string,
     public refreshTokenCreationDate: string,
-  ) {}
+  ) {
+    super();
+  }
 }
 
 @CommandHandler(RefreshTokenCommand)
 @Injectable()
-export class RefreshTokenHandler {
+export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand> {
   constructor(
     protected jwtTokenService: JwtTokenService,
     protected sessionRepository: SessionRepository,

@@ -1,5 +1,5 @@
 import { UserRegistrationInputDto } from '../../api/dto/registration-input.dto.js';
-import { CommandHandler } from '@nestjs/cqrs';
+import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { UserRepository } from '../../../features/user/repository/user.repository.js';
 import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,12 +10,14 @@ import {
   UserCreationFailedException,
 } from '../../../common/exceptions/domain-exceptions.js';
 
-export class RegisterUserCommand {
-  constructor(public registrationInputDto: UserRegistrationInputDto) {}
+export class RegisterUserCommand extends Command<UserOutputDto> {
+  constructor(public registrationInputDto: UserRegistrationInputDto) {
+    super();
+  }
 }
 
 @CommandHandler(RegisterUserCommand)
-export class RegisterUserHandler {
+export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand> {
   constructor(
     protected userRepository: UserRepository,
     protected hashPasswordUtil: HashPasswordUtil,

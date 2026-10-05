@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { CommandHandler } from '@nestjs/cqrs';
+import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LoginInputDto } from '../../api/dto/login-input.dto.js';
 import { UserRepository } from '../../../features/user/repository/user.repository.js';
 import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
@@ -16,17 +16,19 @@ import {
   UserNotFoundException,
 } from '../../../common/exceptions/domain-exceptions.js';
 
-export class LoginUserCommand {
+export class LoginUserCommand extends Command<TokenPair> {
   constructor(
     public readonly loginInputDto: LoginInputDto,
     public readonly ip: string,
     public readonly deviceName: string,
-  ) {}
+  ) {
+    super();
+  }
 }
 
 @CommandHandler(LoginUserCommand)
 @Injectable()
-export class LoginUserHandler {
+export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hashPasswordUtil: HashPasswordUtil,

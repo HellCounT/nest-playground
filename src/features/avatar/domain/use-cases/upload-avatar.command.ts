@@ -1,4 +1,4 @@
-import { CommandHandler } from '@nestjs/cqrs';
+import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { UserRepository } from '../../../user/repository/user.repository.js';
 import {
@@ -14,16 +14,18 @@ import { IFileService } from '../../../../providers/files/files.adapter.js';
 import { v4 as uuidv4 } from 'uuid';
 import { Avatar } from '../../entity/avatar.entity.js';
 
-export class UploadAvatarCommand {
+export class UploadAvatarCommand extends Command<Avatar> {
   constructor(
     public readonly userId: string,
     public readonly file: Express.Multer.File,
-  ) {}
+  ) {
+    super();
+  }
 }
 
 @CommandHandler(UploadAvatarCommand)
 @Injectable()
-export class UploadAvatarHandler {
+export class UploadAvatarHandler implements ICommandHandler<UploadAvatarCommand> {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly avatarRepository: AvatarRepository,

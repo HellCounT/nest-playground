@@ -1,4 +1,4 @@
-import { QueryHandler } from '@nestjs/cqrs';
+import { IQueryHandler, Query, QueryHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../../entity/user.entity.js';
@@ -10,18 +10,20 @@ import {
 } from '../../../../common/utils/pagination.util.js';
 import { ILike, IsNull, Repository } from 'typeorm';
 
-export class GetAllUsersQuery {
+export class GetAllUsersQuery extends Query<Paginated<UserOutputDto>> {
   constructor(
     public readonly page: number,
     public readonly pageSize: number,
     public readonly sortDirection: SortDirection,
     public readonly searchLogin?: string,
-  ) {}
+  ) {
+    super();
+  }
 }
 
 @QueryHandler(GetAllUsersQuery)
 @Injectable()
-export class GetAllUsersHandler {
+export class GetAllUsersHandler implements IQueryHandler<GetAllUsersQuery> {
   constructor(
     @InjectRepository(User) private usersRepository: Repository<User>,
     protected paginationUtil: PaginationUtil,
