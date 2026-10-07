@@ -1,11 +1,12 @@
-import type { Relation } from 'typeorm';
 import {
   Column,
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   OneToMany,
   PrimaryColumn,
+  type Relation,
   UpdateDateColumn,
 } from 'typeorm';
 import { Session } from '../../session/entity/session.entity.js';
@@ -25,6 +26,7 @@ export class User {
   @Column('varchar')
   passwordHash: string;
 
+  @Index()
   @Column('integer')
   age: number;
 
@@ -45,4 +47,6 @@ export class User {
 
   @OneToMany(() => Avatar, (a) => a.user)
   avatars: Relation<Avatar[]>;
+
+  latestAvatar?: Relation<Avatar>;
 }

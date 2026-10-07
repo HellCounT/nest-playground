@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   DeleteDateColumn,
   Entity,
+  Index,
   JoinColumn,
   ManyToOne,
   PrimaryColumn,
@@ -10,6 +11,9 @@ import {
 } from 'typeorm';
 import { User } from '../../user/entity/user.entity.js';
 
+@Index('idx_avatar_active_user_created_at', ['userId', 'createdAt'], {
+  where: `"deletedAt IS NULL`,
+})
 @Entity()
 export class Avatar {
   @PrimaryColumn('uuid')

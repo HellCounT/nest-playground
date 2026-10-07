@@ -10,7 +10,6 @@ export class GetAllUsersQueryParamsDto {
   })
   @IsString()
   @IsOptional()
-  @IsOptional()
   @IsString()
   searchLogin?: string;
 

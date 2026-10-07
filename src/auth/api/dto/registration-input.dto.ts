@@ -5,7 +5,9 @@ import {
   IsPositive,
   IsString,
   Matches,
+  Max,
   MaxLength,
+  Min,
   MinLength,
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
@@ -59,6 +61,8 @@ export class UserRegistrationInputDto {
   @ApiProperty({ example: 35 })
   @IsInt()
   @IsNotEmpty()
+  @Min(14)
+  @Max(120)
   @IsPositive({ message: `The age number should be positive` })
   age: number;
 
