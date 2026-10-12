@@ -6,7 +6,7 @@ import {
   ApiOperation,
 } from '@nestjs/swagger';
 import { UserRegistrationInputDto } from '../dto/registration-input.dto.js';
-import { UserOutputDto } from '../../../features/user/api/dto/user-output.dto.js';
+import { UserOutputDto } from '../../../user/api/dto/user-output.dto.js';
 
 export function SwaggerRegisterUser() {
   return applyDecorators(

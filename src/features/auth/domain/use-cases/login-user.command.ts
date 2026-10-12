@@ -1,20 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { LoginInputDto } from '../../api/dto/login-input.dto.js';
-import { UserRepository } from '../../../features/user/repository/user.repository.js';
-import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
-import { TokenPair, TokenTypes } from '../../../common/types/token.types.js';
+import { UserRepository } from '../../../user/repository/user.repository.js';
+import { HashPasswordUtil } from '../../../../common/utils/hash-password.util.js';
+import { TokenPair, TokenTypes } from '../../../../common/types/token.types.js';
 import { v4 as uuidv4 } from 'uuid';
-import { JwtTokenService } from '../../../common/jwt-token.service.js';
-import { SessionRepository } from '../../../features/session/repository/session.repository.js';
-import { SessionCreateType } from '../../../features/session/types/session-create.type.js';
+import { JwtTokenService } from '../../../../common/jwt-token.service.js';
+import { SessionRepository } from '../../../session/repository/session.repository.js';
+import { SessionCreateType } from '../../../session/types/session-create.type.js';
 import { DUMMY_PASSWORD_HASH } from '../../constraints/auth.constants.js';
 import {
   InvalidPasswordException,
   SessionCreationFailedException,
   SessionUpdateFailedException,
   UserNotFoundException,
-} from '../../../common/exceptions/domain-exceptions.js';
+} from '../../../../common/exceptions/domain-exceptions.js';
 
 export class LoginUserCommand extends Command<TokenPair> {
   constructor(

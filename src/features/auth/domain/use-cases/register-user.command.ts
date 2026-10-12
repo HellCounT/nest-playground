@@ -1,14 +1,14 @@
 import { UserRegistrationInputDto } from '../../api/dto/registration-input.dto.js';
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { UserRepository } from '../../../features/user/repository/user.repository.js';
-import { HashPasswordUtil } from '../../../common/utils/hash-password.util.js';
+import { UserRepository } from '../../../user/repository/user.repository.js';
+import { HashPasswordUtil } from '../../../../common/utils/hash-password.util.js';
 import { v4 as uuidv4 } from 'uuid';
 import { UserCreateType } from '../../types/user-create.type.js';
-import { UserOutputDto } from '../../../features/user/api/dto/user-output.dto.js';
+import { UserOutputDto } from '../../../user/api/dto/user-output.dto.js';
 import {
   UserAlreadyExistsException,
   UserCreationFailedException,
-} from '../../../common/exceptions/domain-exceptions.js';
+} from '../../../../common/exceptions/domain-exceptions.js';
 
 export class RegisterUserCommand extends Command<UserOutputDto> {
   constructor(public registrationInputDto: UserRegistrationInputDto) {

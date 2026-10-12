@@ -6,6 +6,10 @@ import { SessionRepository } from '../src/features/session/repository/session.re
 import { INestApplication } from '@nestjs/common';
 import { testUsers } from './stabs/test-users.stab.js';
 import request from 'supertest';
+import { AvatarRepository } from '../src/features/avatar/repository/avatar.repository.js';
+import { registerAndLoginTestHelper } from './helpers/auth-test.helper.js';
+import { testUsersForTop } from './stabs/test-users-for-top.stab.js';
+import { uploadMultipleAvatarsTestHelper } from './helpers/avatar-test.helper.js';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -20,6 +24,7 @@ describe('UsersController (e2e)', () => {
     applyAppSettings(app);
 
     const userRepo = app.get(UserRepository);
+    const avatarRepo = app.get(AvatarRepository);
     const sessionRepo = app.get(SessionRepository);
 
     await app.init();
@@ -27,6 +32,7 @@ describe('UsersController (e2e)', () => {
     // Entries deletion
     await sessionRepo.testingDeleteAllRecords();
     await userRepo.testingDeleteAllRecords();
+    await avatarRepo.testingDeleteAllRecords();
 
     for (const user of testUsers) {
       await request(app.getHttpServer())
@@ -151,6 +157,73 @@ describe('UsersController (e2e)', () => {
         .get('/api/v1/users/me')
         .set('Authorization', `Bearer ${fakeToken}`)
         .expect(401);
+    });
+  });
+
+  describe('GET /api/v1/users/top', () => {
+    beforeAll(async () => {
+      const validCaseToken1 = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.valid1,
+      );
+      const validCaseToken2 = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.valid2,
+      );
+      const OnlyTwoAvatarsToken = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.onlyTwoAvatars,
+      );
+      const noDescriptionCaseToken = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.noDescription,
+      );
+      const tooYoungCaseToken = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.tooYoung,
+      );
+      const deletedAvatarCaseToken = await registerAndLoginTestHelper(
+        app,
+        testUsersForTop.deletedAvatar,
+      );
+
+      const validCaseUploadedAvatars1 = await uploadMultipleAvatarsTestHelper(
+        app,
+        validCaseToken1,
+        3,
+        'valid1',
+      );
+      const validCaseUploadedAvatars2 = await uploadMultipleAvatarsTestHelper(
+        app,
+        validCaseToken2,
+        4,
+        'valid2',
+      );
+      const onlyTwoUploadedCaseAvatars = await uploadMultipleAvatarsTestHelper(
+        app,
+        validCaseToken2,
+        2,
+        'only-two',
+      );
+      const noDescriptionCaseAvatars = await uploadMultipleAvatarsTestHelper(
+        app,
+        noDescriptionCaseToken,
+        3,
+        'no-description',
+      );
+      const tooYoungCaseAvatars = await uploadMultipleAvatarsTestHelper(
+        app,
+        tooYoungCaseToken,
+        3,
+        'too-young',
+      );
+      const avatarDeletionCaseAvatars = await uploadMultipleAvatarsTestHelper(
+        app,
+        deletedAvatarCaseToken,
+        3,
+        'deleted-avatar',
+      );
+      // TODO: Дописать сами тесты + написать тесты на ручки аватарок с моком
     });
   });
 });

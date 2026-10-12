@@ -17,6 +17,9 @@ import { MeQuery } from './queries/my.query.js';
 import type { AccessTokenRequest } from '../../../common/types/access-token-request.interface.js';
 import { SwaggerGetAllUsers } from './swagger/swagger-get-all-users.decorator.js';
 import { SwaggerMe } from './swagger/swagger-me.decorator.js';
+import { GetTopActiveUsersQueryParamsDto } from './dto/get-top-active-users-query-params.dto.js';
+import { UserWithLatestAvatarOutputDto } from './dto/user-with-latest-avatar-output.dto.js';
+import { GetTopActiveUsersQuery } from './queries/get-top-active-users.query.js';
 
 @Controller('users')
 export class UsersController {
@@ -35,6 +38,22 @@ export class UsersController {
         queryParams.pageSize,
         queryParams.sortDirection,
         queryParams.searchLogin,
+      ),
+    );
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('top')
+  async getTopActiveUsers(
+    @Query() queryParams: GetTopActiveUsersQueryParamsDto,
+  ): Promise<Paginated<UserWithLatestAvatarOutputDto>> {
+    return this.queryBus.execute(
+      new GetTopActiveUsersQuery(
+        queryParams.page,
+        queryParams.pageSize,
+        queryParams.minAge,
+        queryParams.maxAge,
       ),
     );
   }

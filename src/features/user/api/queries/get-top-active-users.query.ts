@@ -31,7 +31,6 @@ export class GetTopActiveUsersQuery extends Query<
 export class GetTopActiveUsersHandler implements IQueryHandler<GetTopActiveUsersQuery> {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    @InjectRepository(Avatar)
     protected paginationUtil: PaginationUtil,
   ) {}
   async execute(

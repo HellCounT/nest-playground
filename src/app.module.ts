@@ -5,7 +5,7 @@ import { AppService } from './app.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AppConfigService } from './config/app-config.service.js';
 import { ObserveModule } from './settings/observe.js';
-import { AuthModule } from './auth/auth.module.js';
+import { AuthModule } from './features/auth/auth.module.js';
 import { UserModule } from './features/user/user.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';

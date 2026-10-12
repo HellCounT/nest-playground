@@ -12,7 +12,7 @@ import {
 import { User } from '../../user/entity/user.entity.js';
 
 @Index('idx_avatar_active_user_created_at', ['userId', 'createdAt'], {
-  where: `"deletedAt IS NULL`,
+  where: '"deletedAt" IS NULL',
 })
 @Entity()
 export class Avatar {

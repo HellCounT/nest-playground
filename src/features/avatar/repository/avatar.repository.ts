@@ -59,4 +59,13 @@ export class AvatarRepository implements AvatarRepositoryContract {
       throw new RepositoryWriteException(e);
     }
   }
+
+  public async testingDeleteAllRecords(): Promise<boolean> {
+    try {
+      const deleteResult = await this.avatarRepository.deleteAll();
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
 }

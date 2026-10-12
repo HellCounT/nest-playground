@@ -8,6 +8,7 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { GetAllUsersHandler } from './api/queries/get-all-users.query.js';
 import { PaginationUtil } from '../../common/utils/pagination.util.js';
 import { MeQueryHandler } from './api/queries/my.query.js';
+import { GetTopActiveUsersHandler } from './api/queries/get-top-active-users.query.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), CqrsModule],
@@ -17,6 +18,7 @@ import { MeQueryHandler } from './api/queries/my.query.js';
     JwtTokenService,
     GetAllUsersHandler,
     MeQueryHandler,
+    GetTopActiveUsersHandler,
     PaginationUtil,
   ],
   exports: [UserRepository],

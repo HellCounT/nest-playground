@@ -37,7 +37,7 @@ export class GetTopActiveUsersQueryParamsDto {
   @IsInt()
   @Min(14)
   @Max(120)
-  minAge?: number;
+  minAge: number = 14;
 
   @ApiPropertyOptional({
     description: 'Maximum age',
@@ -50,5 +50,5 @@ export class GetTopActiveUsersQueryParamsDto {
   @IsInt()
   @Min(14)
   @Max(120)
-  maxAge?: number;
+  maxAge: number = 120;
 }

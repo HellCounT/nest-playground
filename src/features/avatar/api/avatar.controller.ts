@@ -36,7 +36,7 @@ export class AvatarController {
     );
   }
 
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(AccessTokenGuard)
   @Delete(':id')
   async deleteAvatar(

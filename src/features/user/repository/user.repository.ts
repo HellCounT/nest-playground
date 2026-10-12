@@ -3,8 +3,8 @@ import { User } from '../entity/user.entity.js';
 import { IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IBaseRepository } from '../../../base/base-repository.interface.js';
-import { UserCreateType } from '../../../auth/types/user-create.type.js';
-import { UserUpdateInfoType } from '../../../auth/types/user-update-info.type.js';
+import { UserCreateType } from '../../auth/types/user-create.type.js';
+import { UserUpdateInfoType } from '../../auth/types/user-update-info.type.js';
 import {
   RepositoryReadException,
   RepositoryWriteException,

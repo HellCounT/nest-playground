@@ -1,20 +1,15 @@
 import {
-  IsEmail,
-  IsInt,
   IsNotEmpty,
-  IsPositive,
   IsString,
   Matches,
-  Max,
   MaxLength,
-  Min,
   MinLength,
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { validationConstants } from '../../../settings/validation.constraints.js';
+import { validationConstants } from '../../../../settings/validation.constraints.js';
 import { ApiProperty } from '@nestjs/swagger';
 
-export class UserRegistrationInputDto {
+export class LoginInputDto {
   @ApiProperty({ example: 'andy258!' })
   @IsString()
   @IsNotEmpty()
@@ -32,15 +27,6 @@ export class UserRegistrationInputDto {
   })
   login: string;
 
-  @ApiProperty({ example: 'apitest@apitest.com' })
-  @IsString()
-  @IsNotEmpty()
-  @Transform(({ value }: TransformFnParams) =>
-    typeof value === 'string' ? value.trim() : value,
-  )
-  @IsEmail()
-  email: string;
-
   @ApiProperty({ example: 'TeSt12345!*' })
   @IsString()
   @IsNotEmpty()
@@ -53,27 +39,12 @@ export class UserRegistrationInputDto {
   @MaxLength(validationConstants.PASSWORD_MAX_LENGTH, {
     message: `Maximum amount of characters: ${validationConstants.PASSWORD_MAX_LENGTH}`,
   })
-  @Matches(new RegExp(validationConstants.PASSWORD_PATTERN), {
-    message: `Password must match with the pattern ${validationConstants.PASSWORD_PATTERN}`,
-  })
+  @Matches(
+    new RegExp(validationConstants.PASSWORD_PATTERN),
+
+    {
+      message: `Password must match with the pattern ${validationConstants.PASSWORD_PATTERN}`,
+    },
+  )
   password: string;
-
-  @ApiProperty({ example: 35 })
-  @IsInt()
-  @IsNotEmpty()
-  @Min(14)
-  @Max(120)
-  @IsPositive({ message: `The age number should be positive` })
-  age: number;
-
-  @ApiProperty({ example: 'Backend developer' })
-  @IsString()
-  @IsNotEmpty()
-  @MinLength(validationConstants.DESCRIPTION_MIN_LENGTH, {
-    message: `Minimum amount of characters: ${validationConstants.DESCRIPTION_MIN_LENGTH}`,
-  })
-  @MaxLength(validationConstants.DESCRIPTION_MAX_LENGTH, {
-    message: `Maximum amount of characters: ${validationConstants.DESCRIPTION_MAX_LENGTH}{}`,
-  })
-  description: string;
 }
