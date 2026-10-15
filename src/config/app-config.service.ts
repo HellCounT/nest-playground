@@ -11,6 +11,7 @@ import {
 
 import { Environments } from './environments.js';
 import { configValidationUtility } from './config-validation.utility.js';
+import { LogLevel } from '../common/logger/logging.config.js';
 
 @Injectable()
 export class AppConfigService {
@@ -130,6 +131,26 @@ export class AppConfigService {
   })
   storageBucketName: string;
 
+  //LOGGER CONFIGURATION
+  @IsEnum(LogLevel, {
+    message:
+      'Set correct LOG_LEVEL value, available values: ' +
+      configValidationUtility.getEnumValues(LogLevel).join(', '),
+  })
+  logLevel: LogLevel;
+
+  @IsBoolean({
+    message:
+      'Set Env variable LOG_PRETTY to enable/disable Logger prettier, example: true, available values: true, false, 0, 1',
+  })
+  logPretty: boolean | null;
+
+  @IsBoolean({
+    message:
+      'Set Env variable LOG_HTTP to enable/disable HTTP logging, example: true, available values: true, false, 0, 1',
+  })
+  logHttp: boolean | null;
+
   constructor(private readonly configService: ConfigService) {
     this.env = this.configService.get<string>('NODE_ENV')!;
 
@@ -189,6 +210,16 @@ export class AppConfigService {
     this.storageBucketName = this.configService.get<string>(
       'STORAGE_BUCKET_NAME',
     )!;
+
+    this.logLevel = this.configService.get('LOG_LEVEL')!;
+
+    this.logPretty = configValidationUtility.convertToBoolean(
+      this.configService.get('LOG_PRETTY'),
+    ) as boolean;
+
+    this.logHttp = configValidationUtility.convertToBoolean(
+      this.configService.get('LOG_HTTP'),
+    ) as boolean;
 
     configValidationUtility.validateConfig(this);
   }

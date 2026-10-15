@@ -10,11 +10,13 @@ import { UserModule } from './features/user/user.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';
 import { AvatarModule } from './features/avatar/avatar.module.js';
+import { LoggingModule } from './common/logger/logging.module.js';
 
 @Module({
   imports: [
     configModule,
     AppConfigModule,
+    LoggingModule,
     CqrsModule,
 
     TypeOrmModule.forRootAsync({
