@@ -15,6 +15,7 @@ import {
   SessionUpdateFailedException,
   UserNotFoundException,
 } from '../../../../common/exceptions/domain-exceptions.js';
+import { PinoLogger } from 'nestjs-pino';
 
 export class LoginUserCommand extends Command<TokenPair> {
   constructor(
@@ -34,12 +35,17 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
     private readonly hashPasswordUtil: HashPasswordUtil,
     private readonly jwtTokenService: JwtTokenService,
     private readonly sessionRepository: SessionRepository,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(LoginUserCommand.name);
+  }
 
   async execute(command: LoginUserCommand): Promise<TokenPair> {
     const { login, password } = command.loginInputDto;
     const ip = command.ip;
     const deviceName = command.deviceName;
+
+    this.logger.debug({ login }, 'Starting login');
 
     const existingUser = await this.userRepository.findByLogin(login);
 
@@ -50,8 +56,14 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
       passwordHash,
     );
 
-    if (!existingUser) throw new UserNotFoundException();
-    if (!isPasswordValid) throw new InvalidPasswordException();
+    if (!existingUser) {
+      this.logger.warn({ login }, 'User not found');
+      throw new UserNotFoundException();
+    }
+    if (!isPasswordValid) {
+      this.logger.warn({ login }, 'Invalid password');
+      throw new InvalidPasswordException();
+    }
 
     const createdAt = new Date().toISOString();
     const userId = existingUser.id;
@@ -77,7 +89,13 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
       const isUpdated = this.sessionRepository.updateOneById(session.id, {
         refreshTokenCreationDate: createdAt,
       });
-      if (!isUpdated) throw new SessionUpdateFailedException();
+      if (!isUpdated) {
+        this.logger.warn(
+          { login, sessionId: session.id },
+          'Failed to update session',
+        );
+        throw new SessionUpdateFailedException();
+      }
     } else {
       const newSession: SessionCreateType = {
         id: sessionId,
@@ -88,8 +106,13 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
         lastVisit: new Date(),
       };
       const createdSession = await this.sessionRepository.create(newSession);
-      if (!createdSession) throw new SessionCreationFailedException();
+      if (!createdSession) {
+        this.logger.error({ login, sessionId }, 'Failed to create session');
+        throw new SessionCreationFailedException();
+      }
     }
+
+    this.logger.info({ login }, 'Successfully logged in');
 
     return { accessToken, refreshToken };
   }

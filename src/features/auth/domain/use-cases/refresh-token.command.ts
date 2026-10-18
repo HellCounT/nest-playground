@@ -7,6 +7,7 @@ import {
   SessionNotFoundException,
   SessionUpdateFailedException,
 } from '../../../../common/exceptions/domain-exceptions.js';
+import { PinoLogger } from 'nestjs-pino';
 
 export class RefreshTokenCommand extends Command<TokenPair> {
   constructor(
@@ -23,14 +24,26 @@ export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand>
   constructor(
     protected jwtTokenService: JwtTokenService,
     protected sessionRepository: SessionRepository,
-  ) {}
+    private readonly logger: PinoLogger,
+  ) {
+    this.logger.setContext(RefreshTokenHandler.name);
+  }
 
   async execute(command: RefreshTokenCommand): Promise<TokenPair> {
+    this.logger.debug(
+      { sessionId: command.sessionId },
+      'Starting new tokens pair creation',
+    );
+
     const session = await this.sessionRepository.getById(command.sessionId);
     if (
       !session ||
       session.refreshTokenCreationDate !== command.refreshTokenCreationDate
     ) {
+      this.logger.warn(
+        { sessionId: command.sessionId },
+        'Tokens pair creation failed: session not found',
+      );
       throw new SessionNotFoundException();
     }
 
@@ -57,8 +70,18 @@ export class RefreshTokenHandler implements ICommandHandler<RefreshTokenCommand>
       },
     );
 
-    if (!isUpdated) throw new SessionUpdateFailedException();
+    if (!isUpdated) {
+      this.logger.error(
+        { sessionId: command.sessionId },
+        'Tokens pair creation failed: Failed to update session',
+      );
+      throw new SessionUpdateFailedException();
+    }
 
+    this.logger.info(
+      { sessionId: command.sessionId, isUpdated },
+      'Successfully updated tokens pair',
+    );
     return { accessToken, refreshToken };
   }
 }
