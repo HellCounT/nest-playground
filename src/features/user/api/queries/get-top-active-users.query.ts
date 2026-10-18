@@ -42,7 +42,7 @@ export class GetTopActiveUsersHandler implements IQueryHandler<GetTopActiveUsers
   EXISTS (
     SELECT 1
     FROM avatar
-    WHERE avatar."userId" = user.id
+    WHERE avatar."userId" = u.id
       AND avatar."deletedAt" IS NULL
     OFFSET 2
     LIMIT 1
@@ -53,7 +53,7 @@ export class GetTopActiveUsersHandler implements IQueryHandler<GetTopActiveUsers
   latestAvatar.id = (
     SELECT avatar.id
     FROM avatar avatar
-    WHERE avatar."userId" = user.id
+    WHERE avatar."userId" = u.id
       AND avatar."deletedAt" IS NULL
     ORDER BY avatar."createdAt" DESC
     LIMIT 1
@@ -61,27 +61,28 @@ export class GetTopActiveUsersHandler implements IQueryHandler<GetTopActiveUsers
 `;
 
     const [users, totalCount] = await this.userRepository
-      .createQueryBuilder('user')
+      .createQueryBuilder('u')
       .leftJoinAndMapOne(
-        `user.latestAvatar`,
+        `u.latestAvatar`,
         Avatar,
         'latestAvatar',
         latestAvatarQuery,
       )
       .select([
-        'user.id',
-        'user.login',
-        'user.email',
-        'user.age',
-        'user.description',
-        'user.createdAt',
+        'u.id',
+        'u.login',
+        'u.email',
+        'u.age',
+        'u.description',
+        'u.createdAt',
+        'u.updatedAt',
 
         'latestAvatar.id',
         'latestAvatar.fileName',
         'latestAvatar.createdAt',
       ])
-      .where("TRIM(user.description) <> ''")
-      .andWhere('user.age BETWEEN :minAge AND :maxAge', { minAge, maxAge })
+      .where("TRIM(u.description) <> ''")
+      .andWhere('u.age BETWEEN :minAge AND :maxAge', { minAge, maxAge })
       .andWhere(activeAvatarsCountQuery)
       .skip(this.paginationUtil.getOffset(page, pageSize))
       .take(pageSize)

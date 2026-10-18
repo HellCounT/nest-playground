@@ -49,5 +49,5 @@ export async function deleteAvatarTestHelper(
   await request(app.getHttpServer())
     .delete(`/api/v1/avatars/${avatarId}`)
     .set('Authorization', `Bearer ${accessToken}`)
-    .expect(200);
+    .expect(204);
 }

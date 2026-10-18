@@ -7,10 +7,16 @@ export async function registerUserTestHelper(
   app: INestApplication,
   user: UserRegistrationInputDto,
 ): Promise<void> {
-  await request(app.getHttpServer())
+  const response = await request(app.getHttpServer())
     .post('/api/v1/auth/user-registration')
-    .send(user)
-    .expect(201);
+    .send(user);
+
+  if (response.status !== 201) {
+    console.log('Failed user:', user);
+    console.log('Response:', response.body);
+  }
+
+  expect(response.status).toBe(201);
 }
 
 export async function loginUserTestHelper(

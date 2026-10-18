@@ -6,9 +6,11 @@ import { UserRepository } from '../src/features/user/repository/user.repository.
 import { SessionRepository } from '../src/features/session/repository/session.repository.js';
 import { testUsers } from './stabs/test-users.stab.js';
 import request from 'supertest';
+import { AvatarRepository } from '../src/features/avatar/repository/avatar.repository.js';
 
 let userRepository: UserRepository;
 let sessionRepository: SessionRepository;
+let avatarRepository: AvatarRepository;
 
 describe('AuthController (e2e)', () => {
   let app: INestApplication;
@@ -23,6 +25,7 @@ describe('AuthController (e2e)', () => {
 
     userRepository = app.get(UserRepository);
     sessionRepository = app.get(SessionRepository);
+    avatarRepository = app.get(AvatarRepository);
 
     await app.init();
   });
@@ -30,6 +33,7 @@ describe('AuthController (e2e)', () => {
   beforeEach(async () => {
     // Entries deletion
     await sessionRepository.testingDeleteAllRecords();
+    await avatarRepository.testingDeleteAllRecords();
     await userRepository.testingDeleteAllRecords();
   });
 
