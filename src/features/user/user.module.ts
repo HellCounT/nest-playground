@@ -10,6 +10,8 @@ import { PaginationUtil } from '../../common/utils/pagination.util.js';
 import { MeQueryHandler } from './api/queries/my.query.js';
 import { GetTopActiveUsersHandler } from './api/queries/get-top-active-users.query.js';
 import { AppCacheModule } from '../../common/cache/app-cache.module.js';
+import { UpdateUserProfileCommandHandler } from './api/domain/commands/update-user-profile.command.js';
+import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), CqrsModule, AppCacheModule],
@@ -17,9 +19,11 @@ import { AppCacheModule } from '../../common/cache/app-cache.module.js';
   providers: [
     UserRepository,
     JwtTokenService,
+    UpdateUserProfileCommandHandler,
     GetAllUsersHandler,
     MeQueryHandler,
     GetTopActiveUsersHandler,
+    HashPasswordUtil,
     PaginationUtil,
   ],
   exports: [UserRepository],

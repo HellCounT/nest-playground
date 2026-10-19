@@ -1,5 +1,5 @@
 export type UserUpdateInfoType = {
-  email?: string;
   hash?: string;
+  age?: number;
   description?: string;
 };

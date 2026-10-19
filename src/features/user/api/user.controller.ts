@@ -1,13 +1,15 @@
 import {
+  Body,
   Controller,
   Get,
   HttpCode,
   HttpStatus,
+  Patch,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { QueryBus } from '@nestjs/cqrs';
+import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UserOutputDto } from './dto/user-output.dto.js';
 import { GetAllUsersQueryParamsDto } from './dto/get-all-users-query-params.dto.js';
 import { Paginated } from '../../../common/utils/pagination.util.js';
@@ -20,10 +22,16 @@ import { SwaggerMe } from './swagger/swagger-me.decorator.js';
 import { GetTopActiveUsersQueryParamsDto } from './dto/get-top-active-users-query-params.dto.js';
 import { UserWithLatestAvatarOutputDto } from './dto/user-with-latest-avatar-output.dto.js';
 import { GetTopActiveUsersQuery } from './queries/get-top-active-users.query.js';
+import { UserUpdateProfileInputDto } from './dto/user-update-profile-input.dto.js';
+import { AtLeastOneFieldPipe } from '../../../common/pipes/at-least-one-field.pipe.js';
+import { UpdateUserProfileCommand } from './domain/commands/update-user-profile.command.js';
 
 @Controller('users')
 export class UsersController {
-  constructor(protected queryBus: QueryBus) {}
+  constructor(
+    private readonly queryBus: QueryBus,
+    private readonly commandBus: CommandBus,
+  ) {}
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.OK)
@@ -65,5 +73,20 @@ export class UsersController {
   async me(@Req() request: AccessTokenRequest): Promise<UserOutputDto> {
     const userId = request.userId;
     return await this.queryBus.execute(new MeQuery(userId));
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  //todo: SWAGGER
+  @Patch('me/update')
+  async updateMyProfile(
+    @Req() request: AccessTokenRequest,
+    @Body(AtLeastOneFieldPipe)
+    userUpdateProfileInputDto: UserUpdateProfileInputDto,
+  ): Promise<void> {
+    const userId = request.userId;
+    return await this.commandBus.execute(
+      new UpdateUserProfileCommand(userId, userUpdateProfileInputDto),
+    );
   }
 }
