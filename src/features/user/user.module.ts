@@ -9,9 +9,10 @@ import { GetAllUsersHandler } from './api/queries/get-all-users.query.js';
 import { PaginationUtil } from '../../common/utils/pagination.util.js';
 import { MeQueryHandler } from './api/queries/my.query.js';
 import { GetTopActiveUsersHandler } from './api/queries/get-top-active-users.query.js';
+import { AppCacheModule } from '../../common/cache/app-cache.module.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), CqrsModule],
+  imports: [TypeOrmModule.forFeature([User]), CqrsModule, AppCacheModule],
   controllers: [UsersController],
   providers: [
     UserRepository,
