@@ -41,7 +41,6 @@ export const applyAppSettings = (app: INestApplication) => {
     }),
   );
 
-  // todo: Добавить env IS_LOGGER_ENABLED и подключать по аналогии со SWAGGER
   app.useLogger(app.get(Logger));
 
   app.useGlobalFilters(new AllExceptionsFilter());

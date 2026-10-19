@@ -4,9 +4,12 @@ import { ConfigService } from '@nestjs/config';
 import {
   IsBoolean,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   Matches,
+  Max,
+  Min,
 } from 'class-validator';
 
 import { Environments } from './environments.js';
@@ -151,6 +154,21 @@ export class AppConfigService {
   })
   logHttp: boolean | null;
 
+  //REDIS CONFIGURATION
+  @IsNotEmpty({ message: 'Set correct Env variable for REDIS_HOST' })
+  redisHost: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  @IsNotEmpty({ message: 'Set correct Env variable for REDIS_PORT' })
+  redisPort: number;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty({ message: 'Set correct Env variable for CACHE_TTL' })
+  cacheTtl: number;
+
   constructor(private readonly configService: ConfigService) {
     this.env = this.configService.get<string>('NODE_ENV')!;
 
@@ -220,6 +238,12 @@ export class AppConfigService {
     this.logHttp = configValidationUtility.convertToBoolean(
       this.configService.get('LOG_HTTP'),
     ) as boolean;
+
+    this.redisHost = this.configService.get<string>('REDIS_HOST')!;
+
+    this.redisPort = Number(this.configService.get<string>('REDIS_PORT')!);
+
+    this.cacheTtl = Number(this.configService.get('CACHE_TTL'));
 
     configValidationUtility.validateConfig(this);
   }

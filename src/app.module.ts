@@ -11,11 +11,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';
 import { AvatarModule } from './features/avatar/avatar.module.js';
 import { LoggingModule } from './common/logger/logging.module.js';
+import { AppCacheModule } from './common/cache/app-cache.module.js';
 
 @Module({
   imports: [
     configModule,
     AppConfigModule,
+    AppCacheModule,
     LoggingModule,
     CqrsModule,
 
