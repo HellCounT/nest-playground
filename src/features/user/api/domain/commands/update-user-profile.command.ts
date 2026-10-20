@@ -5,6 +5,7 @@ import { HashPasswordUtil } from '../../../../../common/utils/hash-password.util
 import { PinoLogger } from 'nestjs-pino';
 import { UserUpdateInfoType } from '../../../../auth/types/user-update-info.type.js';
 import { UserNotFoundException } from '../../../../../common/exceptions/domain-exceptions.js';
+import { AppCacheService } from '../../../../../common/cache/app-cache.service.js';
 
 export class UpdateUserProfileCommand extends Command<void> {
   constructor(
@@ -20,6 +21,7 @@ export class UpdateUserProfileCommandHandler implements ICommandHandler<UpdateUs
   constructor(
     private readonly userRepository: UserRepository,
     private readonly hashPasswordUtil: HashPasswordUtil,
+    private readonly cacheService: AppCacheService,
     private readonly logger: PinoLogger,
   ) {}
 
@@ -63,6 +65,9 @@ export class UpdateUserProfileCommandHandler implements ICommandHandler<UpdateUs
       userUpdateInfo,
     );
 
+    if (updateResult)
+      await this.cacheService.delete(`users:profile:${command.userId}`);
+
     this.logger.info(
       {
         userId: command.userId,
@@ -71,5 +76,7 @@ export class UpdateUserProfileCommandHandler implements ICommandHandler<UpdateUs
       },
       `User profile update executed with ${updateResult} result`,
     );
+
+    return;
   }
 }
