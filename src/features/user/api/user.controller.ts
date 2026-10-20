@@ -24,7 +24,7 @@ import { UserWithLatestAvatarOutputDto } from './dto/user-with-latest-avatar-out
 import { GetTopActiveUsersQuery } from './queries/get-top-active-users.query.js';
 import { UserUpdateProfileInputDto } from './dto/user-update-profile-input.dto.js';
 import { AtLeastOneFieldPipe } from '../../../common/pipes/at-least-one-field.pipe.js';
-import { UpdateUserProfileCommand } from './domain/commands/update-user-profile.command.js';
+import { UpdateUserProfileCommand } from '../domain/commands/update-user-profile.command.js';
 
 @Controller('users')
 export class UsersController {

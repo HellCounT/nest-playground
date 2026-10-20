@@ -23,6 +23,7 @@ export class RegisterUserHandler implements ICommandHandler<RegisterUserCommand>
     protected userRepository: UserRepository,
     protected hashPasswordUtil: HashPasswordUtil,
     private readonly logger: PinoLogger,
+    //todo: Cache invalidation logic
   ) {
     this.logger.setContext(RegisterUserHandler.name);
   }
