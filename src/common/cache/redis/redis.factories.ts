@@ -22,6 +22,14 @@ export function createNativeRedisClient(
     logger.warn({ err: error }, 'Redis client error');
   });
 
+  client.on('reconnecting', () => {
+    logger.warn('[NATIVE REDIS] reconnecting');
+  });
+
+  client.on('ready', () => {
+    logger.info('[NATIVE REDIS] ready');
+  });
+
   // Не блокируем запуск NestJS ожиданием Redis.
   void client.connect().catch((error: unknown) => {
     logger.error({ err: error }, 'Redis client connection failed');
@@ -38,7 +46,11 @@ export function createCacheStore(config: AppConfigService, logger: PinoLogger) {
   });
 
   keyv.on('error', (error) => {
-    logger.warn({ err: error }, 'Redis cache error');
+    logger.warn({ err: error }, '[KEYV] error');
+  });
+
+  keyv.store.on('error', (error) => {
+    logger.warn({ err: error }, '[KEYV ADAPTER] error');
   });
 
   return keyv;

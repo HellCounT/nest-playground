@@ -8,6 +8,7 @@ import {
   createCacheStore,
   createNativeRedisClient,
 } from './redis/redis.factories.js';
+import { RedisClientType } from '@keyv/redis';
 
 @Module({
   imports: [
@@ -24,9 +25,10 @@ import {
     {
       provide: REDIS_CLIENT,
       inject: [AppConfigService, PinoLogger],
-      useFactory: (config: AppConfigService, logger: PinoLogger) => {
-        createNativeRedisClient(config, logger);
-      },
+      useFactory: (
+        config: AppConfigService,
+        logger: PinoLogger,
+      ): RedisClientType => createNativeRedisClient(config, logger),
     },
   ],
   exports: [AppCacheService, REDIS_CLIENT],

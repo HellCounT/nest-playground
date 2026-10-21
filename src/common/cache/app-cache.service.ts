@@ -15,6 +15,11 @@ export class AppCacheService {
     private readonly logger: PinoLogger,
   ) {
     this.logger.setContext(AppCacheService.name);
+    // console.log('Redis client injected:', {
+    //   exists: this.redisClient !== undefined,
+    //   isOpen: this.redisClient?.isOpen,
+    //   isReady: this.redisClient?.isReady,
+    // });
   }
 
   async get<T>(key: string): Promise<T | undefined> {
