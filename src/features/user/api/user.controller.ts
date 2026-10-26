@@ -5,6 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Patch,
+  Post,
   Query,
   Req,
   UseGuards,
@@ -16,7 +17,7 @@ import { Paginated } from '../../../common/utils/pagination.util.js';
 import { GetAllUsersQuery } from './queries/get-all-users.query.js';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard.js';
 import { MeQuery } from './queries/my.query.js';
-import type { AccessTokenRequest } from '../../../common/types/access-token-request.interface.js';
+import type { AccessTokenRequest } from '../../../common/jwt/access-token-request.interface.js';
 import { SwaggerGetAllUsers } from './swagger/swagger-get-all-users.decorator.js';
 import { SwaggerMe } from './swagger/swagger-me.decorator.js';
 import { GetTopActiveUsersQueryParamsDto } from './dto/get-top-active-users-query-params.dto.js';
@@ -25,6 +26,8 @@ import { GetTopActiveUsersQuery } from './queries/get-top-active-users.query.js'
 import { UserUpdateProfileInputDto } from './dto/user-update-profile-input.dto.js';
 import { AtLeastOneFieldPipe } from '../../../common/pipes/at-least-one-field.pipe.js';
 import { UpdateUserProfileCommand } from '../domain/commands/update-user-profile.command.js';
+import { TransferMoneyInputDto } from './dto/transfer-money-input.dto.js';
+import { TransferMoneyCommand } from '../domain/commands/transfer-money.command.js';
 
 @Controller('users')
 export class UsersController {
@@ -87,6 +90,23 @@ export class UsersController {
     const userId = request.userId;
     return await this.commandBus.execute(
       new UpdateUserProfileCommand(userId, userUpdateProfileInputDto),
+    );
+  }
+
+  @UseGuards(AccessTokenGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Post('/me/transfer-money')
+  async transferMoney(
+    @Req() request: AccessTokenRequest,
+    @Body() transferMoneyInputDto: TransferMoneyInputDto,
+  ): Promise<void> {
+    const senderId = request.userId;
+    return await this.commandBus.execute(
+      new TransferMoneyCommand(
+        senderId,
+        transferMoneyInputDto.recipientId,
+        transferMoneyInputDto.amount,
+      ),
     );
   }
 }

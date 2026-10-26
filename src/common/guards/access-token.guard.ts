@@ -4,8 +4,8 @@ import {
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { JwtTokenService } from '../jwt-token.service.js';
-import { AccessTokenPayload, TokenTypes } from '../types/token.types.js';
+import { JwtTokenService } from '../jwt/jwt-token.service.js';
+import { AccessTokenPayload, TokenTypes } from '../jwt/token.types.js';
 
 @Injectable()
 export class AccessTokenGuard implements CanActivate {

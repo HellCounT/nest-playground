@@ -1,8 +1,8 @@
 import { Command, CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { Injectable } from '@nestjs/common';
-import { JwtTokenService } from '../../../../common/jwt-token.service.js';
+import { JwtTokenService } from '../../../../common/jwt/jwt-token.service.js';
 import { SessionRepository } from '../../../session/repository/session.repository.js';
-import { TokenPair, TokenTypes } from '../../../../common/types/token.types.js';
+import { TokenPair, TokenTypes } from '../../../../common/jwt/token.types.js';
 import {
   SessionNotFoundException,
   SessionUpdateFailedException,

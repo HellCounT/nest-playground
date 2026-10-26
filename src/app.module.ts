@@ -12,6 +12,7 @@ import { AppConfigModule } from './config/app-config.module.js';
 import { AvatarModule } from './features/avatar/avatar.module.js';
 import { LoggingModule } from './common/logger/logging.module.js';
 import { AppCacheModule } from './common/cache/app-cache.module.js';
+import { TransactionModule } from './base/infrastructure/repository/typeorm/transaction.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AppCacheModule } from './common/cache/app-cache.module.js';
     AppCacheModule,
     LoggingModule,
     CqrsModule,
+    TransactionModule,
 
     TypeOrmModule.forRootAsync({
       inject: [AppConfigService],

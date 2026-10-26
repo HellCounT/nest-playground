@@ -28,6 +28,11 @@ export const domainExceptionStatusMap: Record<string, HttpStatus> = {
   AVATARS_MAXIMUM_ACHIEVED: HttpStatus.BAD_REQUEST,
   AVATAR_NOT_FOUND: HttpStatus.BAD_REQUEST,
   UNABLE_TO_DELETE_FOREIGN_AVATAR: HttpStatus.FORBIDDEN,
+  SENDER_OR_RECIPIENT_NOT_FOUND: HttpStatus.BAD_REQUEST,
+  INVALID_MONEY_TRANSFER_AMOUNT: HttpStatus.BAD_REQUEST,
+  SENDER_AND_RECIPIENT_IDS_CONFLICT: HttpStatus.CONFLICT,
+  INSUFFICIENT_FUNDS: HttpStatus.CONFLICT,
+  MONEY_CREDIT_FAILED: HttpStatus.CONFLICT,
 };
 
 export class UserNotFoundException extends DomainException {
@@ -132,5 +137,41 @@ export class AvatarNotFoundException extends DomainException {
 export class UnableToDeleteForeignAvatarException extends DomainException {
   constructor() {
     super('Unable to delete foreign avatar', 'UNABLE_TO_DELETE_FOREIGN_AVATAR');
+  }
+}
+
+export class SenderOrRecipientNotFoundException extends DomainException {
+  constructor() {
+    super('Sender or recipient not found', 'SENDER_OR_RECIPIENT_NOT_FOUND');
+  }
+}
+
+export class InvalidMoneyTransferAmountException extends DomainException {
+  constructor() {
+    super(
+      'Amount value must be positive and have 2 decimals',
+      'INVALID_MONEY_TRANSFER_AMOUNT',
+    );
+  }
+}
+
+export class SenderAndRecipientIdsConflictException extends DomainException {
+  constructor() {
+    super(
+      'Sender id and recipient id should be different',
+      'SENDER_AND_RECIPIENT_IDS_CONFLICT',
+    );
+  }
+}
+
+export class InsufficientFundsException extends DomainException {
+  constructor() {
+    super('Insufficient funds', 'INSUFFICIENT_FUNDS');
+  }
+}
+
+export class MoneyCreditFailedException extends DomainException {
+  constructor() {
+    super('Money credit failed', 'MONEY_CREDIT_FAILED');
   }
 }

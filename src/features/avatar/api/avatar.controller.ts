@@ -12,7 +12,7 @@ import {
 } from '@nestjs/common';
 import { CommandBus } from '@nestjs/cqrs';
 import { AccessTokenGuard } from '../../../common/guards/access-token.guard.js';
-import type { AccessTokenRequest } from '../../../common/types/access-token-request.interface.js';
+import type { AccessTokenRequest } from '../../../common/jwt/access-token-request.interface.js';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UploadAvatarCommand } from '../domain/use-cases/upload-avatar.command.js';
 import { AvatarFileValidationPipe } from './pipes/avatar-file-validation.pipe.js';

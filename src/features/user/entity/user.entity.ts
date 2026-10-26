@@ -1,4 +1,5 @@
 import {
+  Check,
   Column,
   CreateDateColumn,
   DeleteDateColumn,
@@ -13,6 +14,7 @@ import { Session } from '../../session/entity/session.entity.js';
 import { Avatar } from '../../avatar/entity/avatar.entity.js';
 
 @Entity()
+@Check('CHK_user_balance_is_positive_or_zero', '"balance" >= 0')
 export class User {
   @PrimaryColumn('uuid', { unique: true })
   id: string;
@@ -41,6 +43,14 @@ export class User {
 
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedAt: Date;
+
+  @Column({
+    type: 'numeric',
+    precision: 15,
+    scale: 2,
+    default: 0,
+  })
+  balance: string;
 
   @OneToMany(() => Session, (s) => s.user)
   sessions: Relation<Session[]>;

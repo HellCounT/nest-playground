@@ -9,7 +9,7 @@ import { SessionRepository } from '../session/repository/session.repository.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Session } from '../session/entity/session.entity.js';
 import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
-import { JwtTokenService } from '../../common/jwt-token.service.js';
+import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { IpUtil } from '../../common/utils/ip.util.js';
 

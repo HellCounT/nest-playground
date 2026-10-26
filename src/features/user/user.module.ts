@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entity/user.entity.js';
 import { UserRepository } from './repository/user.repository.js';
 import { UsersController } from './api/user.controller.js';
-import { JwtTokenService } from '../../common/jwt-token.service.js';
+import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetAllUsersHandler } from './api/queries/get-all-users.query.js';
 import { PaginationUtil } from '../../common/utils/pagination.util.js';

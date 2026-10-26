@@ -1,14 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import jwt from 'jsonwebtoken';
-import { AppConfigService } from '../config/app-config.service.js';
-import { JwtPayload, SignOptions } from 'jsonwebtoken';
-import { TokenTypes, TokenPayloadMap } from './types/token.types.js';
+import jwt, { JwtPayload, SignOptions } from 'jsonwebtoken';
+import { AppConfigService } from '../../config/app-config.service.js';
+import { TokenPayloadMap, TokenTypes } from './token.types.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
   InvalidTokenException,
   JwtTokenCreationFailedException,
   JwtTokenVerificationException,
-} from './exceptions/domain-exceptions.js';
+} from '../exceptions/domain-exceptions.js';
 
 @Injectable()
 export class JwtTokenService {
