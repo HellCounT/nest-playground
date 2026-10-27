@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   HttpStatus,
   Patch,
@@ -74,8 +75,7 @@ export class UsersController {
   @SwaggerMe()
   @Get('me')
   async me(@Req() request: AccessTokenRequest): Promise<UserOutputDto> {
-    const userId = request.userId;
-    return await this.queryBus.execute(new MeQuery(userId));
+    return await this.queryBus.execute(new MeQuery(request.userId));
   }
 
   @UseGuards(AccessTokenGuard)
@@ -87,9 +87,8 @@ export class UsersController {
     @Body(AtLeastOneFieldPipe)
     userUpdateProfileInputDto: UserUpdateProfileInputDto,
   ): Promise<void> {
-    const userId = request.userId;
     return await this.commandBus.execute(
-      new UpdateUserProfileCommand(userId, userUpdateProfileInputDto),
+      new UpdateUserProfileCommand(request.userId, userUpdateProfileInputDto),
     );
   }
 
@@ -99,6 +98,8 @@ export class UsersController {
   async transferMoney(
     @Req() request: AccessTokenRequest,
     @Body() transferMoneyInputDto: TransferMoneyInputDto,
+    @Headers('idempotency-key')
+    idempotencyKey: string,
   ): Promise<void> {
     const senderId = request.userId;
     return await this.commandBus.execute(
@@ -106,6 +107,7 @@ export class UsersController {
         senderId,
         transferMoneyInputDto.recipientId,
         transferMoneyInputDto.amount,
+        idempotencyKey,
       ),
     );
   }

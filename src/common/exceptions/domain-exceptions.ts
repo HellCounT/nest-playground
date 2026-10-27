@@ -33,6 +33,8 @@ export const domainExceptionStatusMap: Record<string, HttpStatus> = {
   SENDER_AND_RECIPIENT_IDS_CONFLICT: HttpStatus.CONFLICT,
   INSUFFICIENT_FUNDS: HttpStatus.CONFLICT,
   MONEY_CREDIT_FAILED: HttpStatus.CONFLICT,
+  INVALID_IDEMPOTENCY_KEY: HttpStatus.BAD_REQUEST,
+  IDEMPOTENCY_KEY_CONFLICT: HttpStatus.CONFLICT,
 };
 
 export class UserNotFoundException extends DomainException {
@@ -173,5 +175,17 @@ export class InsufficientFundsException extends DomainException {
 export class MoneyCreditFailedException extends DomainException {
   constructor() {
     super('Money credit failed', 'MONEY_CREDIT_FAILED');
+  }
+}
+
+export class InvalidIdempotencyKeyException extends DomainException {
+  constructor() {
+    super('Invalid idempotency key', 'INVALID_IDEMPOTENCY_KEY');
+  }
+}
+
+export class IdempotencyKeyConflictException extends DomainException {
+  constructor() {
+    super('Idempotency key conflict', 'IDEMPOTENCY_KEY_CONFLICT');
   }
 }

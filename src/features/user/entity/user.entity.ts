@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { Session } from '../../session/entity/session.entity.js';
 import { Avatar } from '../../avatar/entity/avatar.entity.js';
+import { MoneyTransfer } from '../../money-transfer/entity/money-transfer.entity.js';
 
 @Entity()
 @Check('CHK_user_balance_is_positive_or_zero', '"balance" >= 0')
@@ -59,4 +60,10 @@ export class User {
   avatars: Relation<Avatar[]>;
 
   latestAvatar?: Relation<Avatar>;
+
+  @OneToMany(() => MoneyTransfer, (t) => t.sender)
+  sentTransfers: Relation<MoneyTransfer[]>;
+
+  @OneToMany(() => MoneyTransfer, (t) => t.recipient)
+  receivedTransfers: Relation<MoneyTransfer[]>;
 }

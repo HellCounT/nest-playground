@@ -13,4 +13,10 @@ export class MoneyMathsUtil {
       Number(amount) > 0
     );
   }
+
+  normalizeAmount(amount: string): string {
+    const [integer, fraction = ''] = amount.split('.');
+    const normalizedInteger = integer.replace(/^0+(?=\d)/, '');
+    return `${normalizedInteger}.${fraction.padEnd(2, '0')}`;
+  }
 }
