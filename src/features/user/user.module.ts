@@ -12,6 +12,8 @@ import { GetTopActiveUsersHandler } from './api/queries/get-top-active-users.que
 import { AppCacheModule } from '../../common/cache/app-cache.module.js';
 import { UpdateUserProfileHandler } from './domain/commands/update-user-profile.command.js';
 import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
+import { TransferMoneyHandler } from './domain/commands/transfer-money.command.js';
+import { MoneyMathsUtil } from '../../common/utils/money-maths.util.js';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User]), CqrsModule, AppCacheModule],
@@ -20,11 +22,13 @@ import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
     UserRepository,
     JwtTokenService,
     UpdateUserProfileHandler,
+    TransferMoneyHandler,
     GetAllUsersHandler,
     MeQueryHandler,
     GetTopActiveUsersHandler,
     HashPasswordUtil,
     PaginationUtil,
+    MoneyMathsUtil,
   ],
   exports: [UserRepository],
 })

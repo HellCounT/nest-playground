@@ -8,9 +8,9 @@ export class MoneyMathsUtil {
 
   isValidAmount(amount: string): boolean {
     return (
-      amount.trim() === '' ||
-      !Number.isFinite(Number(amount)) ||
-      Number(amount) <= 0
+      amount.trim() !== '' &&
+      Number.isFinite(Number(amount)) &&
+      Number(amount) > 0
     );
   }
 }

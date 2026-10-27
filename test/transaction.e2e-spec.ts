@@ -203,4 +203,220 @@ describe('Transaction manager (e2e)', () => {
 
     expect(transactionContext.getManager()).toBeUndefined();
   });
+
+  it('Should return 204 on successful money transfer', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipientResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipientId = registerRecipientResponse.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient = await userRepository.getById(recipientId);
+    expect(recipient).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.50',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderBeforeTransfer = await userRepository.getById(senderId);
+    expect(senderBeforeTransfer?.balance).toBe('100.50');
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ recipientId: recipientId, amount: '20.50' })
+      .expect(204);
+
+    const senderAfterTransfer = await userRepository.getById(senderId);
+    const recipientAfterTransfer = await userRepository.getById(recipientId);
+
+    expect(senderAfterTransfer?.balance).toBe('80.00');
+    expect(recipientAfterTransfer?.balance).toBe('20.50');
+  });
+
+  it('Should return 409 on insufficient funds', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipientResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipientId = registerRecipientResponse.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient = await userRepository.getById(recipientId);
+    expect(recipient).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '50.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ recipientId: recipientId, amount: '80' })
+      .expect(409);
+
+    const senderAfterTransfer = await userRepository.getById(senderId);
+    const recipientAfterTransfer = await userRepository.getById(recipientId);
+
+    expect(senderAfterTransfer?.balance).toBe('50.00');
+    expect(recipientAfterTransfer?.balance).toBe('0.00');
+  });
+
+  it('Should return 500 on credit failure', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipientResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipientId = registerRecipientResponse.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient = await userRepository.getById(recipientId);
+    expect(recipient).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    let balanceInsideTransaction: string | undefined;
+
+    const creditSpy = vi.spyOn(userRepository, 'credit');
+
+    try {
+      creditSpy.mockImplementationOnce(async () => {
+        const senderInsideTransaction = await userRepository.getById(senderId);
+        balanceInsideTransaction = senderInsideTransaction?.balance;
+        throw new Error('Credit failure simulation');
+      });
+      await request(app.getHttpServer())
+        .post('/api/v1/users/me/transfer-money')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ recipientId: recipientId, amount: '30' })
+        .expect(500);
+
+      expect(balanceInsideTransaction).toBe('70.00');
+
+      const senderAfter = await userRepository.getById(senderId);
+      const recipientAfter = await userRepository.getById(recipientId);
+
+      expect(senderAfter?.balance).toBe('100.00');
+      expect(recipientAfter?.balance).toBe('0.00');
+
+      expect(creditSpy).toHaveBeenCalledExactlyOnceWith(recipientId, '30');
+    } finally {
+      creditSpy.mockRestore();
+    }
+  });
+
+  it('Should allow only one of two concurrent transfers', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipient1Response = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+    const registerRecipient2Response = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[2])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipient1Id = registerRecipient1Response.body.id;
+    const recipient2Id = registerRecipient2Response.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient1 = await userRepository.getById(recipient1Id);
+    expect(recipient1).not.toBeNull();
+    const recipient2 = await userRepository.getById(recipient2Id);
+    expect(recipient2).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    const firstRequest = request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ recipientId: recipient1Id, amount: '80' });
+
+    const secondRequest = request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .send({ recipientId: recipient2Id, amount: '80' });
+
+    const responses = await Promise.all([firstRequest, secondRequest]);
+
+    const statusCodes = responses.map((r) => r.status);
+
+    expect(statusCodes.sort()).toEqual([204, 409]);
+
+    const senderAfterTransfer = await userRepository.getById(senderId);
+    const recipient1AfterTransfer = await userRepository.getById(recipient1Id);
+    const recipient2AfterTransfer = await userRepository.getById(recipient2Id);
+
+    expect(senderAfterTransfer?.balance).toBe('20.00');
+
+    const balancesAfterTransfer = [
+      recipient1AfterTransfer?.balance,
+      recipient2AfterTransfer?.balance,
+    ].sort();
+
+    expect(balancesAfterTransfer).toEqual(['0.00', '80.00']);
+  });
 });
