@@ -12,12 +12,15 @@ import {
   ITransactionManager,
   TRANSACTION_MANAGER,
 } from '../src/application/transaction-manager.interface.js';
+import { v4 as uuidv4 } from 'uuid';
+import { MoneyTransferRepository } from '../src/features/money-transfer/repository/money-transfer.repository.js';
 
 describe('Transaction manager (e2e)', () => {
   let app: INestApplication;
   let userRepository: UserRepository;
   let sessionRepository: SessionRepository;
   let avatarRepository: AvatarRepository;
+  let moneyTransferRepository: MoneyTransferRepository;
   let transactionManager: ITransactionManager;
   let transactionContext: TransactionContext;
 
@@ -32,7 +35,7 @@ describe('Transaction manager (e2e)', () => {
     userRepository = app.get(UserRepository);
     sessionRepository = app.get(SessionRepository);
     avatarRepository = app.get(AvatarRepository);
-
+    moneyTransferRepository = app.get(MoneyTransferRepository);
     transactionManager = app.get<ITransactionManager>(TRANSACTION_MANAGER);
     transactionContext = app.get(TransactionContext);
 
@@ -41,6 +44,7 @@ describe('Transaction manager (e2e)', () => {
 
   beforeEach(async () => {
     // Entries deletion
+    await moneyTransferRepository.testingDeleteAllRecords();
     await sessionRepository.testingDeleteAllRecords();
     await avatarRepository.testingDeleteAllRecords();
     await userRepository.testingDeleteAllRecords();
@@ -237,9 +241,12 @@ describe('Transaction manager (e2e)', () => {
 
     const accessToken = senderLoginResponse.body.accessToken;
 
+    const idempotencyKey = uuidv4();
+
     await request(app.getHttpServer())
       .post('/api/v1/users/me/transfer-money')
       .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
       .send({ recipientId: recipientId, amount: '20.50' })
       .expect(204);
 
@@ -280,9 +287,12 @@ describe('Transaction manager (e2e)', () => {
 
     const accessToken = senderLoginResponse.body.accessToken;
 
+    const idempotencyKey = uuidv4();
+
     await request(app.getHttpServer())
       .post('/api/v1/users/me/transfer-money')
       .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
       .send({ recipientId: recipientId, amount: '80' })
       .expect(409);
 
@@ -323,6 +333,8 @@ describe('Transaction manager (e2e)', () => {
 
     const accessToken = senderLoginResponse.body.accessToken;
 
+    const idempotencyKey = uuidv4();
+
     let balanceInsideTransaction: string | undefined;
 
     const creditSpy = vi.spyOn(userRepository, 'credit');
@@ -336,6 +348,7 @@ describe('Transaction manager (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/v1/users/me/transfer-money')
         .set('Authorization', `Bearer ${accessToken}`)
+        .set('Idempotency-key', idempotencyKey)
         .send({ recipientId: recipientId, amount: '30' })
         .expect(500);
 
@@ -347,7 +360,7 @@ describe('Transaction manager (e2e)', () => {
       expect(senderAfter?.balance).toBe('100.00');
       expect(recipientAfter?.balance).toBe('0.00');
 
-      expect(creditSpy).toHaveBeenCalledExactlyOnceWith(recipientId, '30');
+      expect(creditSpy).toHaveBeenCalledExactlyOnceWith(recipientId, '30.00');
     } finally {
       creditSpy.mockRestore();
     }
@@ -390,14 +403,20 @@ describe('Transaction manager (e2e)', () => {
 
     const accessToken = senderLoginResponse.body.accessToken;
 
+    const idempotencyKey1 = uuidv4();
+
     const firstRequest = request(app.getHttpServer())
       .post('/api/v1/users/me/transfer-money')
       .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey1)
       .send({ recipientId: recipient1Id, amount: '80' });
+
+    const idempotencyKey2 = uuidv4();
 
     const secondRequest = request(app.getHttpServer())
       .post('/api/v1/users/me/transfer-money')
       .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey2)
       .send({ recipientId: recipient2Id, amount: '80' });
 
     const responses = await Promise.all([firstRequest, secondRequest]);
@@ -418,5 +437,217 @@ describe('Transaction manager (e2e)', () => {
     ].sort();
 
     expect(balancesAfterTransfer).toEqual(['0.00', '80.00']);
+  });
+
+  it('Should withdraw only once on two idempotent transfers', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipientResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipientId = registerRecipientResponse.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient = await userRepository.getById(recipientId);
+    expect(recipient).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    const idempotencyKey = uuidv4();
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipientId, amount: '30' })
+      .expect(204);
+
+    const senderAfterFirstTransfer = await userRepository.getById(senderId);
+    expect(senderAfterFirstTransfer?.balance).toBe('70.00');
+    const recipientAfterFirstTransfer =
+      await userRepository.getById(recipientId);
+    expect(recipientAfterFirstTransfer?.balance).toBe('30.00');
+
+    const transfer =
+      await moneyTransferRepository.findBySenderAndIdempotencyKey(
+        senderId,
+        idempotencyKey,
+      );
+
+    expect(transfer).not.toBeNull();
+    expect(transfer?.recipientId).toBe(recipientId);
+    expect(transfer?.amount).toBe('30.00');
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipientId, amount: '30' })
+      .expect(204);
+
+    const senderAfterSecondTransfer = await userRepository.getById(senderId);
+    expect(senderAfterSecondTransfer?.balance).toBe('70.00');
+    const recipientAfterSecondTransfer =
+      await userRepository.getById(recipientId);
+    expect(recipientAfterSecondTransfer?.balance).toBe('30.00');
+  });
+
+  it('Should return 409 on the same idempotency key, but different amount or recipient', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipient1Response = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+    const registerRecipient2Response = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[2])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipient1Id = registerRecipient1Response.body.id;
+    const recipient2Id = registerRecipient2Response.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient1 = await userRepository.getById(recipient1Id);
+    expect(recipient1).not.toBeNull();
+    const recipient2 = await userRepository.getById(recipient2Id);
+    expect(recipient2).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    const idempotencyKey = uuidv4();
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipient1Id, amount: '40' })
+      .expect(204);
+
+    const senderAfterFirstTransfer = await userRepository.getById(senderId);
+    expect(senderAfterFirstTransfer?.balance).toBe('60.00');
+    const recipient1AfterFirstTransfer =
+      await userRepository.getById(recipient1Id);
+    expect(recipient1AfterFirstTransfer?.balance).toBe('40.00');
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipient2Id, amount: '40' })
+      .expect(409);
+
+    const senderAfterSecondTransfer = await userRepository.getById(senderId);
+    expect(senderAfterSecondTransfer?.balance).toBe('60.00');
+    const recipient2AfterSecondTransfer =
+      await userRepository.getById(recipient2Id);
+    expect(recipient2AfterSecondTransfer?.balance).toBe('0.00');
+
+    await request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipient1Id, amount: '60' })
+      .expect(409);
+
+    const senderAfterThirdTransfer = await userRepository.getById(senderId);
+    expect(senderAfterThirdTransfer?.balance).toBe('60.00');
+    const recipient1AfterThirdTransfer =
+      await userRepository.getById(recipient1Id);
+    expect(recipient1AfterThirdTransfer?.balance).toBe('40.00');
+
+    const transfer =
+      await moneyTransferRepository.findBySenderAndIdempotencyKey(
+        senderId,
+        idempotencyKey,
+      );
+    expect(transfer).not.toBeNull();
+    expect(transfer?.recipientId).toBe(recipient1Id);
+    expect(transfer?.amount).toBe('40.00');
+  });
+
+  it('Should execute concurrent requests with the same idempotency key only once', async () => {
+    const registerSenderResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[0])
+      .expect(201);
+    const registerRecipientResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/user-registration')
+      .send(testUsers[1])
+      .expect(201);
+
+    const senderId = registerSenderResponse.body.id;
+    const recipientId = registerRecipientResponse.body.id;
+
+    const sender = await userRepository.getById(senderId);
+    expect(sender).not.toBeNull();
+    const recipient = await userRepository.getById(recipientId);
+    expect(recipient).not.toBeNull();
+
+    const isUpdated = await userRepository.updateOneById(senderId, {
+      balance: '100.00',
+    });
+    expect(isUpdated).toBe(true);
+
+    const senderLoginResponse = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ login: testUsers[0].login, password: testUsers[0].password })
+      .expect(200);
+
+    const accessToken = senderLoginResponse.body.accessToken;
+
+    const idempotencyKey = uuidv4();
+
+    const firstRequest = request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipientId, amount: '80' });
+
+    const secondRequest = request(app.getHttpServer())
+      .post('/api/v1/users/me/transfer-money')
+      .set('Authorization', `Bearer ${accessToken}`)
+      .set('Idempotency-key', idempotencyKey)
+      .send({ recipientId: recipientId, amount: '80' });
+
+    const responses = await Promise.all([firstRequest, secondRequest]);
+
+    expect(responses.map((r) => r.status)).toEqual([204, 204]);
+
+    const senderAfterTransfer = await userRepository.getById(senderId);
+    const recipientAfterTransfer = await userRepository.getById(recipientId);
+
+    expect(senderAfterTransfer?.balance).toBe('20.00');
+    expect(recipientAfterTransfer?.balance).toEqual('80.00');
   });
 });

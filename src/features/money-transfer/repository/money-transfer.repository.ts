@@ -60,4 +60,13 @@ export class MoneyTransferRepository {
       }
     }
   }
+
+  public async testingDeleteAllRecords(): Promise<boolean> {
+    try {
+      const deleteResult = await this.repository.deleteAll();
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
 }

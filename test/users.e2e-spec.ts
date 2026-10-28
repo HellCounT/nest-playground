@@ -14,6 +14,7 @@ import {
   uploadMultipleAvatarsTestHelper,
 } from './helpers/avatar-test.helper.js';
 import { Avatar } from '../src/features/avatar/entity/avatar.entity.js';
+import { MoneyTransferRepository } from '../src/features/money-transfer/repository/money-transfer.repository.js';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -30,10 +31,12 @@ describe('UsersController (e2e)', () => {
     const userRepo = app.get(UserRepository);
     const avatarRepo = app.get(AvatarRepository);
     const sessionRepo = app.get(SessionRepository);
+    const moneyTransferRepo = app.get(MoneyTransferRepository);
 
     await app.init();
 
     // Entries deletion
+    await moneyTransferRepo.testingDeleteAllRecords();
     await sessionRepo.testingDeleteAllRecords();
     await avatarRepo.testingDeleteAllRecords();
     await userRepo.testingDeleteAllRecords();

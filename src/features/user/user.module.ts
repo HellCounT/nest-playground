@@ -14,12 +14,19 @@ import { UpdateUserProfileHandler } from './domain/commands/update-user-profile.
 import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
 import { TransferMoneyHandler } from './domain/commands/transfer-money.command.js';
 import { MoneyMathsUtil } from '../../common/utils/money-maths.util.js';
+import { MoneyTransferRepository } from '../money-transfer/repository/money-transfer.repository.js';
+import { MoneyTransfer } from '../money-transfer/entity/money-transfer.entity.js';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User]), CqrsModule, AppCacheModule],
+  imports: [
+    TypeOrmModule.forFeature([User, MoneyTransfer]),
+    CqrsModule,
+    AppCacheModule,
+  ],
   controllers: [UsersController],
   providers: [
     UserRepository,
+    MoneyTransferRepository,
     JwtTokenService,
     UpdateUserProfileHandler,
     TransferMoneyHandler,
