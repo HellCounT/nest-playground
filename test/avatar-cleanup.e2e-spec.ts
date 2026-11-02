@@ -13,6 +13,10 @@ import { DataSource, Repository } from 'typeorm';
 import { Avatar } from '../src/features/avatar/entity/avatar.entity.js';
 import { IFileService } from '../src/providers/files/files.adapter.js';
 import { MoneyTransferRepository } from '../src/features/money-transfer/repository/money-transfer.repository.js';
+import { S3Module } from '../src/providers/files/s3/s3.module.js';
+import { HeadObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { S3_CLIENT } from '../src/providers/files/s3/constants/s3-client.token.js';
+import { AppConfigService } from '../src/config/app-config.service.js';
 
 describe('Avatar Cleanup (e2e)', () => {
   let app: INestApplication;
@@ -25,6 +29,9 @@ describe('Avatar Cleanup (e2e)', () => {
   let moneyTransferRepo: MoneyTransferRepository;
 
   let avatarTypeOrmRepo: Repository<Avatar>;
+
+  let s3Client: S3Client;
+  let appConfig: AppConfigService;
 
   let testAvatars: Avatar[];
 
@@ -44,6 +51,9 @@ describe('Avatar Cleanup (e2e)', () => {
     const dataSource = app.get(DataSource);
     avatarTypeOrmRepo = dataSource.getRepository(Avatar);
     fileService = app.get(IFileService);
+    appConfig = app.get(AppConfigService);
+
+    s3Client = app.select(S3Module).get<S3Client>(S3_CLIENT, { strict: true });
 
     await app.init();
   });
@@ -124,10 +134,53 @@ describe('Avatar Cleanup (e2e)', () => {
       withDeleted: true,
     });
 
+    const testAvatar3 = await avatarTypeOrmRepo.findOne({
+      where: { id: testAvatars[3].id },
+      withDeleted: true,
+    });
+
     expect(testAvatar0).toBeNull();
     expect(testAvatar1).toBeNull();
     expect(testAvatar2).not.toBeNull();
     expect(testAvatar2?.deletedAt).not.toBeNull();
+    expect(testAvatar3).not.toBeNull();
+    expect(testAvatar3?.deletedAt).toBeNull();
     expect(executionResult).toEqual({ processed: 2, deleted: 2, failed: 0 });
+
+    const command0 = new HeadObjectCommand({
+      Bucket: appConfig.storageBucketName,
+      Key: testAvatars[0].fileName,
+    });
+
+    const command1 = new HeadObjectCommand({
+      Bucket: appConfig.storageBucketName,
+      Key: testAvatars[1].fileName,
+    });
+
+    const command2 = new HeadObjectCommand({
+      Bucket: appConfig.storageBucketName,
+      Key: testAvatars[2].fileName,
+    });
+
+    const command3 = new HeadObjectCommand({
+      Bucket: appConfig.storageBucketName,
+      Key: testAvatars[3].fileName,
+    });
+
+    await expect(s3Client.send(command0)).rejects.toMatchObject({
+      $metadata: {
+        httpStatusCode: 404,
+      },
+    });
+
+    await expect(s3Client.send(command1)).rejects.toMatchObject({
+      $metadata: {
+        httpStatusCode: 404,
+      },
+    });
+
+    await expect(s3Client.send(command2)).resolves.toBeDefined();
+
+    await expect(s3Client.send(command3)).resolves.toBeDefined();
   });
 });
