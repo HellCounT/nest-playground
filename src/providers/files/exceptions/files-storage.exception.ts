@@ -6,7 +6,7 @@ export class FilesStorageException extends Error {
     public readonly code: string,
     public readonly cause?: unknown,
   ) {
-    super(message);
+    super(message, { cause });
     this.name = this.constructor.name;
   }
 }

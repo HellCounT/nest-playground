@@ -13,6 +13,8 @@ import { AvatarModule } from './features/avatar/avatar.module.js';
 import { LoggingModule } from './common/logger/logging.module.js';
 import { AppCacheModule } from './common/cache/app-cache.module.js';
 import { TransactionModule } from './base/infrastructure/repository/typeorm/transaction.module.js';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AvatarCleanupModule } from './features/avatar/avatar-cleanup/avatar-cleanup.module.js';
 
 @Module({
   imports: [
@@ -33,9 +35,12 @@ import { TransactionModule } from './base/infrastructure/repository/typeorm/tran
       }),
     }),
 
+    ScheduleModule.forRoot(),
+
     AuthModule,
     UserModule,
     AvatarModule,
+    AvatarCleanupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -39,7 +39,9 @@ export class TransferMoneyHandler implements ICommandHandler<TransferMoneyComman
     private readonly logger: PinoLogger,
     @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: ITransactionManager,
-  ) {}
+  ) {
+    this.logger.setContext(TransferMoneyHandler.name);
+  }
 
   async execute(command: TransferMoneyCommand) {
     const { senderId, recipientId, amount, idempotencyKey } = command;

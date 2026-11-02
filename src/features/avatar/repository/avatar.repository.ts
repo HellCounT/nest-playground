@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IBaseRepository } from '../../../base/infrastructure/repository/base-repository.interface.js';
 import { Avatar } from '../entity/avatar.entity.js';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, LessThan, MoreThan, Repository } from 'typeorm';
 import {
   RepositoryReadException,
   RepositoryWriteException,
@@ -57,6 +57,37 @@ export class AvatarRepository implements AvatarRepositoryContract {
       return !!deleteResult.affected;
     } catch (e) {
       throw new RepositoryWriteException(e);
+    }
+  }
+
+  public async hardDelete(id: string): Promise<boolean> {
+    try {
+      const deleteResult = await this.avatarRepository.delete(id);
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
+
+  async findExpiredAvatars(
+    cutoffDate: Date,
+    limit: number,
+    cursor?: string,
+  ): Promise<Avatar[]> {
+    try {
+      return await this.avatarRepository.find({
+        where: {
+          deletedAt: LessThan(cutoffDate),
+          ...(cursor ? { id: MoreThan(cursor) } : {}),
+        },
+        take: limit,
+        order: {
+          id: 'ASC',
+        },
+        withDeleted: true,
+      });
+    } catch (e) {
+      throw new RepositoryReadException(e);
     }
   }
 

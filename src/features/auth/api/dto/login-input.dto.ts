@@ -6,7 +6,7 @@ import {
   MinLength,
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { validationConstants } from '../../../../settings/validation.constraints.js';
+import { validationConstants } from '../../../../settings/validation/validation.constraints.js';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginInputDto {

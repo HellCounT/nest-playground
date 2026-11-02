@@ -24,5 +24,6 @@ import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
     UploadAvatarHandler,
     JwtTokenService,
   ],
+  exports: [AvatarRepository],
 })
 export class AvatarModule {}

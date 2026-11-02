@@ -30,44 +30,33 @@ export class S3Service extends IFileService {
     const { folder, file, name } = dto;
     const path = `${folder}/${uuidv4()}${name}`;
 
-    return new Promise((resolve, reject) => {
-      this.s3.send(
+    try {
+      await this.s3.send(
         new PutObjectCommand({
           Bucket: this.configService.storageBucketName,
           Key: path,
           Body: file.buffer,
           ContentType: file.mimetype,
         }),
-        (error) => {
-          if (!error) {
-            resolve({
-              path,
-            });
-          } else {
-            reject(new FileUploadFailedException(error.message));
-          }
-        },
       );
-    });
+
+      return { path };
+    } catch (e) {
+      throw new FileUploadFailedException(e);
+    }
   }
 
   async removeFile(dto: RemoveFilePayloadDto): Promise<void> {
-    const { path } = dto;
-
-    return new Promise((resolve, reject) => {
-      this.s3.send(
+    try {
+      await this.s3.send(
         new DeleteObjectCommand({
           Bucket: this.configService.storageBucketName,
-          Key: path,
+          Key: dto.path,
         }),
-        (error) => {
-          if (!error) {
-            resolve();
-          } else {
-            reject(new FileRemoveFailedException(error.message));
-          }
-        },
       );
-    });
+      return;
+    } catch (e) {
+      throw new FileRemoveFailedException(e);
+    }
   }
 }

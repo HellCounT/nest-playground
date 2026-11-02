@@ -7,14 +7,17 @@ import {
   IsInt,
   IsNotEmpty,
   IsNumber,
+  IsString,
   Matches,
   Max,
   Min,
 } from 'class-validator';
 
 import { Environments } from './environments.js';
-import { configValidationUtility } from './config-validation.utility.js';
+import { configValidationUtility } from './validation/config-validation.utility.js';
 import { LogLevel } from '../common/logger/logging.config.js';
+import { ms, StringValue } from '../common/utils/ms.util.js';
+import { IsCronExpression } from './validation/decorators/is-cron-expression.decorator.js';
 
 @Injectable()
 export class AppConfigService {
@@ -169,6 +172,32 @@ export class AppConfigService {
   @IsNotEmpty({ message: 'Set correct Env variable for CACHE_TTL' })
   cacheTtl: number;
 
+  @IsNumber(
+    { allowNaN: false, allowInfinity: false },
+    {
+      message:
+        'AVATAR_CLEANUP_RETENTION must be a valid duration, e.g. 7d, 24h, 30m',
+    },
+  )
+  @Min(1)
+  avatarCleanupRetention: number;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty({
+    message: 'Set correct Env variable for AVATAR_CLEANUP_BATCH_SIZE',
+  })
+  avatarCleanupBatchSize: number;
+
+  @IsString()
+  @IsNotEmpty({
+    message: 'Set correct Env variable for AVATAR_CLEANUP_CRON_SCHEDULE',
+  })
+  @IsCronExpression({
+    message: 'AVATAR_CLEANUP_CRON_SCHEDULE must be a valid cron expression',
+  })
+  avatarCleanupCronSchedule: string;
+
   constructor(private readonly configService: ConfigService) {
     this.env = this.configService.get<string>('NODE_ENV')!;
 
@@ -244,6 +273,22 @@ export class AppConfigService {
     this.redisPort = Number(this.configService.get<string>('REDIS_PORT')!);
 
     this.cacheTtl = Number(this.configService.get('CACHE_TTL'));
+
+    const retention = this.configService.get<string>(
+      'AVATAR_CLEANUP_RETENTION',
+    )!;
+
+    this.avatarCleanupRetention = retention
+      ? ms(retention as StringValue)
+      : NaN;
+
+    this.avatarCleanupBatchSize = Number(
+      this.configService.get('AVATAR_CLEANUP_BATCH_SIZE'),
+    );
+
+    this.avatarCleanupCronSchedule = this.configService.get<string>(
+      'AVATAR_CLEANUP_CRON_SCHEDULE',
+    )!;
 
     configValidationUtility.validateConfig(this);
   }

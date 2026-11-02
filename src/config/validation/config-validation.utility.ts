@@ -18,6 +18,7 @@ export const configValidationUtility = {
       throw new Error(`Validation failed: ${sortedMessages}`);
     }
   },
+
   convertToBoolean(value: string | undefined) {
     const trimmedValue = value?.trim().toLowerCase();
 

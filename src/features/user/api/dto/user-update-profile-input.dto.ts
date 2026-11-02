@@ -12,7 +12,7 @@ import {
   ValidateIf,
 } from 'class-validator';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { validationConstants } from '../../../../settings/validation.constraints.js';
+import { validationConstants } from '../../../../settings/validation/validation.constraints.js';
 
 export class UserUpdateProfileInputDto {
   @ApiPropertyOptional({ example: 'TeSt12345!*' })

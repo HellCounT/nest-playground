@@ -23,7 +23,9 @@ export class UpdateUserProfileHandler implements ICommandHandler<UpdateUserProfi
     private readonly hashPasswordUtil: HashPasswordUtil,
     private readonly cacheService: AppCacheService,
     private readonly logger: PinoLogger,
-  ) {}
+  ) {
+    this.logger.setContext(UpdateUserProfileHandler.name);
+  }
 
   async execute(command: UpdateUserProfileCommand): Promise<void> {
     this.logger.debug(
