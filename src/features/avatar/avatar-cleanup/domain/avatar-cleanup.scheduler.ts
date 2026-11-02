@@ -4,6 +4,7 @@ import { PinoLogger } from 'nestjs-pino';
 import { AppConfigService } from '../../../../config/app-config.service.js';
 import { CronJob } from 'cron';
 import { AvatarCleanupService } from './avatar-cleanup.service.js';
+import { Environments } from '../../../../config/environments.js';
 
 @Injectable()
 export class AvatarCleanupScheduler implements OnApplicationBootstrap {
@@ -16,6 +17,13 @@ export class AvatarCleanupScheduler implements OnApplicationBootstrap {
     this.logger.setContext(AvatarCleanupScheduler.name);
   }
   onApplicationBootstrap() {
+    if (this.config.env === Environments.TESTING) {
+      this.logger.debug(
+        'Avatar cleanup scheduler disabled in testing environment',
+      );
+      return;
+    }
+
     const jobName = 'avatar-cleanup';
     const schedule = this.config.avatarCleanupCronSchedule;
 

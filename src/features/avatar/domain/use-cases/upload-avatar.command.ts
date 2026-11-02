@@ -58,7 +58,7 @@ export class UploadAvatarHandler implements ICommandHandler<UploadAvatarCommand>
     }
 
     const newAvatarId = uuidv4();
-    await this.fileService.uploadFile({
+    const uploadedFile = await this.fileService.uploadFile({
       file,
       folder: AVATARS_FOLDER_NAME,
       name: newAvatarId,
@@ -66,7 +66,7 @@ export class UploadAvatarHandler implements ICommandHandler<UploadAvatarCommand>
 
     const newAvatar = await this.avatarRepository.create({
       id: newAvatarId,
-      fileName: file.originalname,
+      fileName: uploadedFile.path,
       userId: userId,
     });
 

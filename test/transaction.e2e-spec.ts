@@ -52,7 +52,7 @@ describe('Transaction manager (e2e)', () => {
 
   afterAll(async () => {
     await app.close();
-  });
+  }, 30000);
 
   it('Should rollback transaction on failure', async () => {
     const registerUserResponse = await request(app.getHttpServer())

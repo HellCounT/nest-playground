@@ -22,6 +22,11 @@ export class AvatarCleanupExecutorService {
       Date.now() - this.configService.avatarCleanupRetention,
     );
 
+    this.logger.debug(
+      { cutoffDate, retention: this.configService.avatarCleanupRetention },
+      'Avatar cleanup cutoff',
+    );
+
     let deletedFilesCount: number = 0;
     let failedFilesCount: number = 0;
 
