@@ -29,6 +29,8 @@ import { AtLeastOneFieldPipe } from '../../../common/pipes/at-least-one-field.pi
 import { UpdateUserProfileCommand } from '../domain/commands/update-user-profile.command.js';
 import { TransferMoneyInputDto } from './dto/transfer-money-input.dto.js';
 import { TransferMoneyCommand } from '../domain/commands/transfer-money.command.js';
+import { SwaggerUpdateMyProfile } from './swagger/swagger-update-my-profile.decorator.js';
+import { SwaggerTransferMoney } from './swagger/swagger-transfer-money.decorator.js';
 
 @Controller('users')
 export class UsersController {
@@ -80,7 +82,7 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  //todo: SWAGGER
+  @SwaggerUpdateMyProfile()
   @Patch('me/update')
   async updateMyProfile(
     @Req() request: AccessTokenRequest,
@@ -94,6 +96,7 @@ export class UsersController {
 
   @UseGuards(AccessTokenGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
+  @SwaggerTransferMoney()
   @Post('/me/transfer-money')
   async transferMoney(
     @Req() request: AccessTokenRequest,
