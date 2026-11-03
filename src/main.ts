@@ -10,6 +10,7 @@ async function bootstrap() {
   const appContext = await NestFactory.createApplicationContext(AppModule);
   const appConfig = appContext.get<AppConfigService>(AppConfigService);
   const DynamicAppModule = await AppModule.forRoot(appConfig);
+  //todo: { bufferLogs: true }
   const app = await NestFactory.create(
     DynamicAppModule,
     appConfig.includeObserveModule

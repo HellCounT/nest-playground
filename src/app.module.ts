@@ -4,18 +4,26 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AppConfigService } from './config/app-config.service.js';
-import { TestingModule } from '@nestjs/testing';
 import { ObserveModule } from './settings/observe.js';
-import { AuthModule } from './auth/auth.module.js';
+import { AuthModule } from './features/auth/auth.module.js';
 import { UserModule } from './features/user/user.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';
+import { AvatarModule } from './features/avatar/avatar.module.js';
+import { LoggingModule } from './common/logger/logging.module.js';
+import { AppCacheModule } from './common/cache/app-cache.module.js';
+import { TransactionModule } from './base/infrastructure/repository/typeorm/transaction.module.js';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AvatarCleanupModule } from './features/avatar/avatar-cleanup/avatar-cleanup.module.js';
 
 @Module({
   imports: [
     configModule,
     AppConfigModule,
+    AppCacheModule,
+    LoggingModule,
     CqrsModule,
+    TransactionModule,
 
     TypeOrmModule.forRootAsync({
       inject: [AppConfigService],
@@ -27,8 +35,12 @@ import { AppConfigModule } from './config/app-config.module.js';
       }),
     }),
 
+    ScheduleModule.forRoot(),
+
     AuthModule,
     UserModule,
+    AvatarModule,
+    AvatarCleanupModule,
   ],
   controllers: [AppController],
   providers: [AppService],
