@@ -24,7 +24,8 @@ export class AppCacheService {
 
   async get<T>(key: string): Promise<T | undefined> {
     try {
-      return this.cacheManager.get<T>(key);
+      //todo: добавь тест, в котором Redis недоступен, но получение профиля продолжает работать через PostgreSQL
+      return await this.cacheManager.get<T>(key);
     } catch (error) {
       this.logger.warn(
         {

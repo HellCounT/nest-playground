@@ -50,7 +50,10 @@ export class MeQueryHandler implements IQueryHandler<MeQuery> {
       const userDto = UserOutputDto.mapToView(user);
       await this.cacheService.set(cacheKey, userDto);
       this.logger.debug({ cacheKey, userDto }, 'MeQuery output cached');
-      this.logger.info({ userDto }, 'MeQuery completed successfully');
+      this.logger.info(
+        { userId: userDto.id },
+        'MeQuery completed successfully',
+      );
       return userDto;
     }
   }
