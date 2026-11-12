@@ -13,6 +13,7 @@ import {
 import { Session } from '../../session/entity/session.entity.js';
 import { Avatar } from '../../avatar/entity/avatar.entity.js';
 import { MoneyTransfer } from '../../money-transfer/entity/money-transfer.entity.js';
+import { UserRole } from '../../auth/types/user-roles.enum.js';
 
 @Entity()
 @Check('CHK_user_balance_is_positive_or_zero', '"balance" >= 0')
@@ -35,6 +36,14 @@ export class User {
 
   @Column({ type: 'varchar', length: 1000 })
   description: string;
+
+  @Column({
+    type: 'enum',
+    enum: UserRole,
+    enumName: 'user_role_enum',
+    default: UserRole.USER,
+  })
+  role: UserRole;
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt: Date;

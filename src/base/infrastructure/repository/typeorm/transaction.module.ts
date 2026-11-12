@@ -2,7 +2,7 @@ import { Global, Module } from '@nestjs/common';
 import { TypeOrmTransactionManager } from './typeorm-transaction-manager.js';
 import { TransactionContext } from './transaction-context.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { TRANSACTION_MANAGER } from '../../../../application/transaction-manager.interface.js';
+import { TRANSACTION_MANAGER } from '../transaction-manager.interface.js';
 
 @Global()
 @Module({

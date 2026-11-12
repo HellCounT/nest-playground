@@ -9,9 +9,9 @@ import { SessionRepository } from '../session/repository/session.repository.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Session } from '../session/entity/session.entity.js';
 import { HashPasswordUtil } from '../../common/utils/hash-password.util.js';
-import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { IpUtil } from '../../common/utils/ip.util.js';
+import { JwtModule } from '../../common/jwt/jwt.module.js';
 
 const commandHandlers = [
   RegisterUserHandler,
@@ -24,11 +24,14 @@ const utils = [HashPasswordUtil, IpUtil];
 
 const repositories = [SessionRepository];
 
-const services = [JwtTokenService];
-
 @Module({
-  imports: [UserModule, TypeOrmModule.forFeature([Session]), CqrsModule],
+  imports: [
+    UserModule,
+    TypeOrmModule.forFeature([Session]),
+    CqrsModule,
+    JwtModule,
+  ],
   controllers: [AuthController],
-  providers: [...commandHandlers, ...services, ...repositories, ...utils],
+  providers: [...commandHandlers, ...repositories, ...utils],
 })
 export class AuthModule {}

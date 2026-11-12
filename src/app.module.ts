@@ -30,7 +30,7 @@ import { AvatarCleanupModule } from './features/avatar/avatar-cleanup/avatar-cle
       useFactory: (appConfig: AppConfigService) => ({
         type: 'postgres',
         url: appConfig.databaseUrl,
-        synchronize: true,
+        synchronize: false,
         autoLoadEntities: true,
       }),
     }),

@@ -8,6 +8,8 @@ import { FilesModule } from '../../../providers/files/files.module.js';
 import { AvatarCleanupController } from './api/avatar-cleanup.controller.js';
 import { AvatarCleanupScheduler } from './domain/avatar-cleanup.scheduler.js';
 import { AvatarModule } from '../avatar.module.js';
+import { UserModule } from '../../user/user.module.js';
+import { JwtModule } from '../../../common/jwt/jwt.module.js';
 
 @Module({
   imports: [
@@ -22,6 +24,8 @@ import { AvatarModule } from '../avatar.module.js';
     }),
     AvatarModule,
     FilesModule,
+    UserModule,
+    JwtModule,
   ],
   controllers: [AvatarCleanupController],
   providers: [

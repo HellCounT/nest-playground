@@ -3,7 +3,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entity/user.entity.js';
 import { UserRepository } from './repository/user.repository.js';
 import { UsersController } from './api/user.controller.js';
-import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { GetAllUsersHandler } from './api/queries/get-all-users.query.js';
 import { PaginationUtil } from '../../common/utils/pagination.util.js';
@@ -16,18 +15,19 @@ import { TransferMoneyHandler } from './domain/commands/transfer-money.command.j
 import { MoneyMathsUtil } from '../../common/utils/money-maths.util.js';
 import { MoneyTransferRepository } from '../money-transfer/repository/money-transfer.repository.js';
 import { MoneyTransfer } from '../money-transfer/entity/money-transfer.entity.js';
+import { JwtModule } from '../../common/jwt/jwt.module.js';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User, MoneyTransfer]),
     CqrsModule,
     AppCacheModule,
+    JwtModule,
   ],
   controllers: [UsersController],
   providers: [
     UserRepository,
     MoneyTransferRepository,
-    JwtTokenService,
     UpdateUserProfileHandler,
     TransferMoneyHandler,
     GetAllUsersHandler,

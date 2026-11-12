@@ -11,7 +11,7 @@ import { AvatarRepository } from '../src/features/avatar/repository/avatar.repos
 import {
   ITransactionManager,
   TRANSACTION_MANAGER,
-} from '../src/application/transaction-manager.interface.js';
+} from '../src/base/infrastructure/repository/transaction-manager.interface.js';
 import { v4 as uuidv4 } from 'uuid';
 import { MoneyTransferRepository } from '../src/features/money-transfer/repository/money-transfer.repository.js';
 

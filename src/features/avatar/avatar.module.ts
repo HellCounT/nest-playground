@@ -8,7 +8,7 @@ import { DeleteAvatarHandler } from './domain/use-cases/delete-avatar.command.js
 import { UploadAvatarHandler } from './domain/use-cases/upload-avatar.command.js';
 import { FilesModule } from '../../providers/files/files.module.js';
 import { UserModule } from '../user/user.module.js';
-import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
+import { JwtModule } from '../../common/jwt/jwt.module.js';
 
 @Module({
   imports: [
@@ -16,14 +16,10 @@ import { JwtTokenService } from '../../common/jwt/jwt-token.service.js';
     CqrsModule,
     FilesModule,
     UserModule,
+    JwtModule,
   ],
   controllers: [AvatarController],
-  providers: [
-    AvatarRepository,
-    DeleteAvatarHandler,
-    UploadAvatarHandler,
-    JwtTokenService,
-  ],
+  providers: [AvatarRepository, DeleteAvatarHandler, UploadAvatarHandler],
   exports: [AvatarRepository],
 })
 export class AvatarModule {}

@@ -15,7 +15,7 @@ import { Inject } from '@nestjs/common';
 import {
   type ITransactionManager,
   TRANSACTION_MANAGER,
-} from '../../../../application/transaction-manager.interface.js';
+} from '../../../../base/infrastructure/repository/transaction-manager.interface.js';
 import { isUUID } from 'class-validator';
 import { MoneyTransferRepository } from '../../../money-transfer/repository/money-transfer.repository.js';
 
