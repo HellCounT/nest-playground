@@ -1,5 +1,5 @@
 import { Params } from 'nestjs-pino';
-import { v4 as uuidv4 } from 'uuid';
+import { getOrCreateRequestId } from '../request-context/get-or-create-request-id.helper.js';
 
 export enum LogLevel {
   FATAL = 'fatal',
@@ -23,17 +23,11 @@ export function createLoggingConfig(config: LoggingConfig): Params {
       level: config.level,
       autoLogging: config.http,
 
-      genReqId: (req, res) => {
-        const header = req.headers['x-request-id'];
-        const requestId =
-          typeof header === 'string' &&
-          header.length > 0 &&
-          header.length <= 128
-            ? header
-            : uuidv4();
-        res.setHeader('X-Request-Id', requestId);
-        return requestId;
-      },
+      genReqId: (req) => getOrCreateRequestId(req),
+
+      customProps: (req) => ({
+        requestId: getOrCreateRequestId(req),
+      }),
 
       customLogLevel: (_req, res, err) => {
         if (err || res.statusCode >= 500) {

@@ -15,12 +15,30 @@ import { AppCacheModule } from './common/cache/app-cache.module.js';
 import { TransactionModule } from './base/infrastructure/repository/typeorm/transaction.module.js';
 import { ScheduleModule } from '@nestjs/schedule';
 import { AvatarCleanupModule } from './features/avatar/avatar-cleanup/avatar-cleanup.module.js';
+import { ClsModule } from 'nestjs-cls';
+import { getOrCreateRequestId } from './common/request-context/get-or-create-request-id.helper.js';
 
 @Module({
   imports: [
     configModule,
     AppConfigModule,
     AppCacheModule,
+
+    ClsModule.forRoot({
+      global: true,
+
+      middleware: {
+        mount: true,
+        generateId: true,
+
+        idGenerator: (req) => getOrCreateRequestId(req),
+
+        setup: (cls, req, res) => {
+          res.setHeader('X-Request-ID', cls.getId()!);
+        },
+      },
+    }),
+
     LoggingModule,
     CqrsModule,
     TransactionModule,

@@ -432,5 +432,23 @@ describe('UsersController (e2e)', () => {
       expect(response.body.pageSize).toBe(1);
       expect(response.body.pagesCount).toBe(2);
     });
+
+    it('Should return existing X-Request-ID', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('X-Request-ID', 'test-123');
+
+      expect(response.headers['x-request-id']).toBe('test-123');
+    });
+
+    it('Should generate X-Request-ID', async () => {
+      const response = await request(app.getHttpServer())
+        .get('/api/v1/users/me')
+        .set('X-Request-ID', 'test-123');
+
+      expect(response.headers['x-request-id']).toMatch(
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+      );
+    });
   });
 });
