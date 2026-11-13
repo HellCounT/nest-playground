@@ -10,8 +10,11 @@ import { RepositoryException } from './repository-exceptions.js';
 import {
   DomainException,
   domainExceptionStatusMap,
-  UserAlreadyExistsException,
 } from './domain-exceptions.js';
+import {
+  filesExceptionStatusMap,
+  FilesStorageException,
+} from '../../providers/files/exceptions/files-storage.exception.js';
 
 type ErrorMessage = {
   statusCode: number;
@@ -50,28 +53,35 @@ export class AllExceptionsFilter implements ExceptionFilter {
       });
     }
 
+    if (exception instanceof FilesStorageException) {
+      console.error(exception);
+      console.error(exception.cause);
+
+      const status =
+        filesExceptionStatusMap[exception.code] ??
+        HttpStatus.INTERNAL_SERVER_ERROR;
+
+      return response.status(status).json({
+        errorsMessages: [
+          {
+            statusCode: status,
+            field: request.url,
+            message: exception.message,
+          },
+        ],
+      });
+    }
+
     if (exception instanceof DomainException) {
       const status =
         domainExceptionStatusMap[exception.code] ?? HttpStatus.BAD_REQUEST;
-
-      if (exception instanceof UserAlreadyExistsException) {
-        return response.status(status).json({
-          errorsMessages: [
-            {
-              statusCode: status,
-              field: request.url,
-              message: 'Unable to create user with provided credentials',
-            },
-          ],
-        });
-      }
 
       return response.status(status).json({
         errorsMessages: [
           {
             statusCode: status,
             field: exception.field ?? request.url,
-            message: exception.message,
+            message: exception.publicMessage,
           },
         ],
       });

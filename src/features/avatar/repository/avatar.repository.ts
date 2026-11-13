@@ -1,0 +1,102 @@
+import { Injectable } from '@nestjs/common';
+import { IBaseRepository } from '../../../base/infrastructure/repository/base-repository.interface.js';
+import { Avatar } from '../entity/avatar.entity.js';
+import { InjectRepository } from '@nestjs/typeorm';
+import { IsNull, LessThan, MoreThan, Repository } from 'typeorm';
+import {
+  RepositoryReadException,
+  RepositoryWriteException,
+} from '../../../common/exceptions/repository-exceptions.js';
+import { AvatarCreateType } from '../types/avatar-create.type.js';
+
+type AvatarRepositoryContract = Omit<
+  IBaseRepository<Avatar, never, AvatarCreateType>,
+  'updateOneById'
+>;
+
+@Injectable()
+export class AvatarRepository implements AvatarRepositoryContract {
+  constructor(
+    @InjectRepository(Avatar)
+    private readonly avatarRepository: Repository<Avatar>,
+  ) {}
+
+  public async getById(id: string): Promise<Avatar | null> {
+    try {
+      return await this.avatarRepository.findOneBy({
+        id,
+        deletedAt: IsNull(),
+      });
+    } catch (e) {
+      throw new RepositoryReadException(e);
+    }
+  }
+
+  public async getUserAvatars(userId: string): Promise<[Avatar[], number]> {
+    try {
+      return await this.avatarRepository.findAndCount({
+        where: { userId, deletedAt: IsNull() },
+      });
+    } catch (e) {
+      throw new RepositoryReadException(e);
+    }
+  }
+
+  public async create(data: AvatarCreateType): Promise<Avatar> {
+    try {
+      const avatar = this.avatarRepository.create(data);
+      return await this.avatarRepository.save(avatar);
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
+
+  public async deleteOneById(id: string): Promise<boolean> {
+    try {
+      const deleteResult = await this.avatarRepository.softDelete(id);
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
+
+  public async hardDelete(id: string): Promise<boolean> {
+    try {
+      const deleteResult = await this.avatarRepository.delete(id);
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
+
+  async findExpiredAvatars(
+    cutoffDate: Date,
+    limit: number,
+    cursor?: string,
+  ): Promise<Avatar[]> {
+    try {
+      return await this.avatarRepository.find({
+        where: {
+          deletedAt: LessThan(cutoffDate),
+          ...(cursor ? { id: MoreThan(cursor) } : {}),
+        },
+        take: limit,
+        order: {
+          id: 'ASC',
+        },
+        withDeleted: true,
+      });
+    } catch (e) {
+      throw new RepositoryReadException(e);
+    }
+  }
+
+  public async testingDeleteAllRecords(): Promise<boolean> {
+    try {
+      const deleteResult = await this.avatarRepository.deleteAll();
+      return !!deleteResult.affected;
+    } catch (e) {
+      throw new RepositoryWriteException(e);
+    }
+  }
+}

@@ -4,31 +4,61 @@ import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 import { CqrsModule } from '@nestjs/cqrs';
 import { AppConfigService } from './config/app-config.service.js';
-import { TestingModule } from '@nestjs/testing';
 import { ObserveModule } from './settings/observe.js';
-import { AuthModule } from './auth/auth.module.js';
+import { AuthModule } from './features/auth/auth.module.js';
 import { UserModule } from './features/user/user.module.js';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppConfigModule } from './config/app-config.module.js';
+import { AvatarModule } from './features/avatar/avatar.module.js';
+import { LoggingModule } from './common/logger/logging.module.js';
+import { AppCacheModule } from './common/cache/app-cache.module.js';
+import { TransactionModule } from './base/infrastructure/repository/typeorm/transaction.module.js';
+import { ScheduleModule } from '@nestjs/schedule';
+import { AvatarCleanupModule } from './features/avatar/avatar-cleanup/avatar-cleanup.module.js';
+import { ClsModule } from 'nestjs-cls';
+import { getOrCreateRequestId } from './common/request-context/get-or-create-request-id.helper.js';
 
 @Module({
   imports: [
     configModule,
     AppConfigModule,
+    AppCacheModule,
+
+    ClsModule.forRoot({
+      global: true,
+
+      middleware: {
+        mount: true,
+        generateId: true,
+
+        idGenerator: (req) => getOrCreateRequestId(req),
+
+        setup: (cls, req, res) => {
+          res.setHeader('X-Request-ID', cls.getId()!);
+        },
+      },
+    }),
+
+    LoggingModule,
     CqrsModule,
+    TransactionModule,
 
     TypeOrmModule.forRootAsync({
       inject: [AppConfigService],
       useFactory: (appConfig: AppConfigService) => ({
         type: 'postgres',
         url: appConfig.databaseUrl,
-        synchronize: true,
+        synchronize: false,
         autoLoadEntities: true,
       }),
     }),
 
+    ScheduleModule.forRoot(),
+
     AuthModule,
     UserModule,
+    AvatarModule,
+    AvatarCleanupModule,
   ],
   controllers: [AppController],
   providers: [AppService],

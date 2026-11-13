@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { AllExceptionsFilter } from '../common/exceptions/all-exception.filter.js';
 import cookieParser from 'cookie-parser';
+import { Logger } from 'nestjs-pino';
 
 type ErrorResponseType = {
   field: string;
@@ -39,6 +40,8 @@ export const applyAppSettings = (app: INestApplication) => {
       },
     }),
   );
+
+  app.useLogger(app.get(Logger));
 
   app.useGlobalFilters(new AllExceptionsFilter());
 };
