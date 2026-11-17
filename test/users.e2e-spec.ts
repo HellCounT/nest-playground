@@ -15,6 +15,10 @@ import {
 } from './helpers/avatar-test.helper.js';
 import { Avatar } from '../src/features/avatar/entity/avatar.entity.js';
 import { MoneyTransferRepository } from '../src/features/money-transfer/repository/money-transfer.repository.js';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { User } from '../src/features/user/entity/user.entity.js';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import type { Cache } from 'cache-manager';
 
 describe('UsersController (e2e)', () => {
   let app: INestApplication;
@@ -164,6 +168,38 @@ describe('UsersController (e2e)', () => {
         .get('/api/v1/users/me')
         .set('Authorization', `Bearer ${fakeToken}`)
         .expect(401);
+    });
+
+    it('Should return user profile from db on Redis failure', async () => {
+      const cacheManager = app.get<Cache>(CACHE_MANAGER);
+      const cacheGetSpy = vi
+        .spyOn(cacheManager, 'get')
+        .mockRejectedValue(new Error('Redis failure simulation'));
+      const cacheSetSpy = vi
+        .spyOn(cacheManager, 'set')
+        .mockResolvedValue(undefined);
+      const userRepo = app.get(getRepositoryToken(User));
+      const databaseSpy = vi.spyOn(userRepo, 'findOneBy');
+
+      try {
+        const response = await request(app.getHttpServer())
+          .get('/api/v1/users/me')
+          .set('Authorization', `Bearer ${accessToken}`)
+          .expect(200);
+
+        console.log('Cache GET calls:', cacheGetSpy.mock.calls);
+
+        expect(cacheGetSpy).toHaveBeenCalledWith(
+          `users:profile:${response.body.id}`,
+        );
+        expect(databaseSpy).toHaveBeenCalledWith({ id: response.body.id });
+
+        expect(response.body.id).toBeDefined();
+      } finally {
+        cacheGetSpy.mockRestore();
+        cacheSetSpy.mockRestore();
+        databaseSpy.mockRestore();
+      }
     });
   });
 
@@ -442,9 +478,9 @@ describe('UsersController (e2e)', () => {
     });
 
     it('Should generate X-Request-ID', async () => {
-      const response = await request(app.getHttpServer())
-        .get('/api/v1/users/me')
-        .set('X-Request-ID', 'test-123');
+      const response = await request(app.getHttpServer()).get(
+        '/api/v1/users/me',
+      );
 
       expect(response.headers['x-request-id']).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
