@@ -125,6 +125,19 @@ export class UserRepository implements IBaseRepository<
     }
   }
 
+  public async getByIdForUpdate(id: string): Promise<User | null> {
+    try {
+      return await this.repository
+        .createQueryBuilder('user')
+        .setLock('pessimistic_write')
+        .where('user.id = :id', { id })
+        .andWhere('user.deletedAt IS NULL')
+        .getOne();
+    } catch (e) {
+      throw new RepositoryReadException(e);
+    }
+  }
+
   public async testingDeleteAllRecords(): Promise<boolean> {
     try {
       const deleteResult = await this.repository.deleteAll();
