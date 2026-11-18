@@ -6,6 +6,7 @@ export abstract class DomainException extends Error {
     public readonly code: string,
     public readonly field?: string,
     public readonly cause?: unknown,
+    public readonly publicMessage: string = message,
   ) {
     super(message);
     this.name = this.constructor.name;
@@ -24,6 +25,16 @@ export const domainExceptionStatusMap: Record<string, HttpStatus> = {
   JWT_TOKEN_CREATION_FAILED: HttpStatus.UNAUTHORIZED,
   JWT_TOKEN_VERIFICATION_FAILED: HttpStatus.UNAUTHORIZED,
   INVALID_TOKEN: HttpStatus.UNAUTHORIZED,
+  AVATARS_MAXIMUM_ACHIEVED: HttpStatus.BAD_REQUEST,
+  AVATAR_NOT_FOUND: HttpStatus.BAD_REQUEST,
+  UNABLE_TO_DELETE_FOREIGN_AVATAR: HttpStatus.FORBIDDEN,
+  SENDER_OR_RECIPIENT_NOT_FOUND: HttpStatus.BAD_REQUEST,
+  INVALID_MONEY_TRANSFER_AMOUNT: HttpStatus.BAD_REQUEST,
+  SENDER_AND_RECIPIENT_IDS_CONFLICT: HttpStatus.CONFLICT,
+  INSUFFICIENT_FUNDS: HttpStatus.CONFLICT,
+  MONEY_CREDIT_FAILED: HttpStatus.CONFLICT,
+  INVALID_IDEMPOTENCY_KEY: HttpStatus.BAD_REQUEST,
+  IDEMPOTENCY_KEY_CONFLICT: HttpStatus.CONFLICT,
 };
 
 export class UserNotFoundException extends DomainException {
@@ -50,6 +61,8 @@ export class UserAlreadyExistsException extends DomainException {
       `User with this ${field} already exists`,
       'USER_ALREADY_EXISTS',
       field,
+      undefined,
+      'Unable to create user with provided credentials',
     );
   }
 }
@@ -108,5 +121,71 @@ export class JwtTokenVerificationException extends DomainException {
 export class InvalidTokenException extends DomainException {
   constructor() {
     super('Invalid JWT token', 'INVALID_TOKEN');
+  }
+}
+
+export class AvatarsMaximumAmountAchievedException extends DomainException {
+  constructor() {
+    super('Avatars max achieved', 'AVATARS_MAXIMUM_ACHIEVED');
+  }
+}
+
+export class AvatarNotFoundException extends DomainException {
+  constructor() {
+    super('Avatar is not found', 'AVATAR_NOT_FOUND');
+  }
+}
+
+export class UnableToDeleteForeignAvatarException extends DomainException {
+  constructor() {
+    super('Unable to delete foreign avatar', 'UNABLE_TO_DELETE_FOREIGN_AVATAR');
+  }
+}
+
+export class SenderOrRecipientNotFoundException extends DomainException {
+  constructor() {
+    super('Sender or recipient not found', 'SENDER_OR_RECIPIENT_NOT_FOUND');
+  }
+}
+
+export class InvalidMoneyTransferAmountException extends DomainException {
+  constructor() {
+    super(
+      'Amount value must be positive and have 2 decimals',
+      'INVALID_MONEY_TRANSFER_AMOUNT',
+    );
+  }
+}
+
+export class SenderAndRecipientIdsConflictException extends DomainException {
+  constructor() {
+    super(
+      'Sender id and recipient id should be different',
+      'SENDER_AND_RECIPIENT_IDS_CONFLICT',
+    );
+  }
+}
+
+export class InsufficientFundsException extends DomainException {
+  constructor() {
+    super('Insufficient funds', 'INSUFFICIENT_FUNDS');
+  }
+}
+
+export class MoneyCreditFailedException extends DomainException {
+  constructor() {
+    super('Money credit failed', 'MONEY_CREDIT_FAILED');
+  }
+}
+
+export class InvalidIdempotencyKeyException extends DomainException {
+  constructor() {
+    super('Invalid idempotency key', 'INVALID_IDEMPOTENCY_KEY');
+  }
+}
+
+export class IdempotencyKeyConflictException extends DomainException {
+  constructor() {
+    super('Idempotency key conflict', 'IDEMPOTENCY_KEY_CONFLICT');
   }
 }

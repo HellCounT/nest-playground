@@ -4,13 +4,20 @@ import { ConfigService } from '@nestjs/config';
 import {
   IsBoolean,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
+  IsString,
   Matches,
+  Max,
+  Min,
 } from 'class-validator';
 
 import { Environments } from './environments.js';
-import { configValidationUtility } from './config-validation.utility.js';
+import { configValidationUtility } from './validation/config-validation.utility.js';
+import { LogLevel } from '../common/logger/logging.config.js';
+import { ms, StringValue } from '../common/utils/ms.util.js';
+import { IsCronExpression } from './validation/decorators/is-cron-expression.decorator.js';
 
 @Injectable()
 export class AppConfigService {
@@ -102,6 +109,95 @@ export class AppConfigService {
   })
   lifetimeRefreshToken: string;
 
+  // STORAGE CONFIGURATION
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE URL SHOULD BE PROVIDED',
+  })
+  storageUrl: string;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE REGION SHOULD BE PROVIDED',
+  })
+  storageRegion: string;
+
+  @IsNotEmpty({
+    message:
+      'CORRECT ENV VARIABLE FOR STORAGE ACCESS KEY ID SHOULD BE PROVIDED',
+  })
+  storageAccessKeyId: string;
+
+  @IsNotEmpty({
+    message:
+      'CORRECT ENV VARIABLE FOR STORAGE SECRET ACCESS KEY SHOULD BE PROVIDED',
+  })
+  storageSecretAccessKey: string;
+
+  @IsNotEmpty({
+    message: 'CORRECT ENV VARIABLE FOR STORAGE BUCKET NAME SHOULD BE PROVIDED',
+  })
+  storageBucketName: string;
+
+  //LOGGER CONFIGURATION
+  @IsEnum(LogLevel, {
+    message:
+      'Set correct LOG_LEVEL value, available values: ' +
+      configValidationUtility.getEnumValues(LogLevel).join(', '),
+  })
+  logLevel: LogLevel;
+
+  @IsBoolean({
+    message:
+      'Set Env variable LOG_PRETTY to enable/disable Logger prettier, example: true, available values: true, false, 0, 1',
+  })
+  logPretty: boolean | null;
+
+  @IsBoolean({
+    message:
+      'Set Env variable LOG_HTTP to enable/disable HTTP logging, example: true, available values: true, false, 0, 1',
+  })
+  logHttp: boolean | null;
+
+  //REDIS CONFIGURATION
+  @IsNotEmpty({ message: 'Set correct Env variable for REDIS_HOST' })
+  redisHost: string;
+
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  @IsNotEmpty({ message: 'Set correct Env variable for REDIS_PORT' })
+  redisPort: number;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty({ message: 'Set correct Env variable for CACHE_TTL' })
+  cacheTtl: number;
+
+  @IsNumber(
+    { allowNaN: false, allowInfinity: false },
+    {
+      message:
+        'AVATAR_CLEANUP_RETENTION must be a valid duration, e.g. 7d, 24h, 30m',
+    },
+  )
+  @Min(1)
+  avatarCleanupRetention: number;
+
+  @IsInt()
+  @Min(1)
+  @IsNotEmpty({
+    message: 'Set correct Env variable for AVATAR_CLEANUP_BATCH_SIZE',
+  })
+  avatarCleanupBatchSize: number;
+
+  @IsString()
+  @IsNotEmpty({
+    message: 'Set correct Env variable for AVATAR_CLEANUP_CRON_SCHEDULE',
+  })
+  @IsCronExpression({
+    message: 'AVATAR_CLEANUP_CRON_SCHEDULE must be a valid cron expression',
+  })
+  avatarCleanupCronSchedule: string;
+
   constructor(private readonly configService: ConfigService) {
     this.env = this.configService.get<string>('NODE_ENV')!;
 
@@ -144,6 +240,54 @@ export class AppConfigService {
 
     this.lifetimeRefreshToken = this.configService.get<string>(
       'EXPIRATION_REFRESH_TOKEN',
+    )!;
+
+    this.storageUrl = this.configService.get<string>('STORAGE_URL')!;
+
+    this.storageRegion = this.configService.get<string>('STORAGE_REGION')!;
+
+    this.storageAccessKeyId = this.configService.get<string>(
+      'STORAGE_ACCESS_KEY_ID',
+    )!;
+
+    this.storageSecretAccessKey = this.configService.get<string>(
+      'STORAGE_SECRET_ACCESS_KEY',
+    )!;
+
+    this.storageBucketName = this.configService.get<string>(
+      'STORAGE_BUCKET_NAME',
+    )!;
+
+    this.logLevel = this.configService.get('LOG_LEVEL')!;
+
+    this.logPretty = configValidationUtility.convertToBoolean(
+      this.configService.get('LOG_PRETTY'),
+    ) as boolean;
+
+    this.logHttp = configValidationUtility.convertToBoolean(
+      this.configService.get('LOG_HTTP'),
+    ) as boolean;
+
+    this.redisHost = this.configService.get<string>('REDIS_HOST')!;
+
+    this.redisPort = Number(this.configService.get<string>('REDIS_PORT')!);
+
+    this.cacheTtl = Number(this.configService.get('CACHE_TTL'));
+
+    const retention = this.configService.get<string>(
+      'AVATAR_CLEANUP_RETENTION',
+    )!;
+
+    this.avatarCleanupRetention = retention
+      ? ms(retention as StringValue)
+      : NaN;
+
+    this.avatarCleanupBatchSize = Number(
+      this.configService.get('AVATAR_CLEANUP_BATCH_SIZE'),
+    );
+
+    this.avatarCleanupCronSchedule = this.configService.get<string>(
+      'AVATAR_CLEANUP_CRON_SCHEDULE',
     )!;
 
     configValidationUtility.validateConfig(this);
